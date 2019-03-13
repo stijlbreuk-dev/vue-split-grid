@@ -1,5 +1,7 @@
 # vue-split-grid
 
+IN DEVELOPMENT
+
 ## Project setup
 ```
 npm install
