@@ -18,13 +18,16 @@ function install(Vue) {
   });
 }
 
-export const SplitGrid = SplitGridComponent;
-export const SplitGridArea = SplitGridAreaComponent;
-export const SplitGridGutter = SplitGridGutterComponent;
+// export const SplitGrid = SplitGridComponent;
+// export const SplitGridArea = SplitGridAreaComponent;
+// export const SplitGridGutter = SplitGridGutterComponent;
 
 // Create module definition for Vue.use()
 export default {
-  install
+  install,
+  SplitGrid: SplitGridComponent,
+  SplitGridArea: SplitGridAreaComponent,
+  SplitGridGutter: SplitGridGutterComponent
 };
 
 // Auto-install when vue is found (eg. in browser via <script> tag)
