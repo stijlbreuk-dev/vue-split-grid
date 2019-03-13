@@ -1,20 +1,29 @@
 // Import vue component
-// import component from './my-component.vue';
+import SplitGridComponent from './components/SplitGrid.vue';
+import SplitGridAreaComponent from './components/SplitGridArea.vue';
+import SplitGridGutterComponent from './components/SplitGridGutter.vue';
 
 const components = {
-  // VueSplitGrid
-  // VueSplitGridPart?
+  SplitGrid: SplitGridComponent,
+  SplitGridArea: SplitGridAreaComponent,
+  SplitGridGutter: SplitGridGutterComponent
 }
 
 // Declare install function executed by Vue.use()
-export function install(Vue) {
+function install(Vue) {
   if (install.installed) return;
   install.installed = true;
-  Vue.component('VueSplitGrid', component);
+  Object.entries(components).forEach(([ key, component ]) => {
+    Vue.component(key, component);
+  });
 }
 
+export const SplitGrid = SplitGridComponent;
+export const SplitGridArea = SplitGridAreaComponent;
+export const SplitGridGutter = SplitGridGutterComponent;
+
 // Create module definition for Vue.use()
-const plugin = {
+export default {
   install
 };
 
@@ -28,6 +37,3 @@ if (typeof window !== 'undefined') {
 if (GlobalVue) {
   GlobalVue.use(plugin);
 }
-
-// To allow use as module (npm/webpack/etc.) export component
-export default components;

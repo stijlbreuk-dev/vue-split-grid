@@ -7,7 +7,7 @@
   "unpkg": "dist/vue-split-grid.min.js",
   "browser": {},
   "scripts": {
-    "serve": "vue serve --open examples/App.vue",
+    "serve": "vue serve --open examples/main.js",
     "lint": "vue-cli-service lint",
     "prepublishOnly": "npm run build",
     "build": "npm run build:umd & npm run build:es & npm run build:unpkg",
@@ -15,7 +15,9 @@
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/vue-split-grid.esm.js",
     "build:unpkg": "cross-env SB_MINIFY=true rollup --config build/rollup.config.js --format iife --file dist/vue-split-grid.min.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "split-grid": "^1.0.9"
+  },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.5.0",
     "@vue/cli-plugin-eslint": "^3.5.0",
