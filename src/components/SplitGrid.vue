@@ -19,13 +19,13 @@ export default {
     },
     columnMinSize: {
       type: Number,
-      default() {
+      default: function() {
         return this.minSize;
       }
     },
     rowMinSize: {
       type: Number,
-      default() {
+      default: function() {
         return this.minSize;
       }
     },
@@ -43,13 +43,13 @@ export default {
     },
     columnSnapOffset: {
       type: Number,
-      default() {
+      default: function() {
         return this.snapOffset;
       }
     },
     rowSnapOffset: {
       type: Number,
-      default() {
+      default: function() {
         return this.snapOffset;
       }
     },
@@ -59,13 +59,13 @@ export default {
     },
     columnDragInterval: {
       type: Number,
-      default() {
+      default: function() {
         return this.dragInterval;
       }
     },
     rowDragInterval: {
       type: Number,
-      default() {
+      default: function() {
         return this.dragInterval;
       }
     },
