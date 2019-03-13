@@ -1,11 +1,15 @@
 {
   "name": "vue-split-grid",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Vue component based on Split Grid",
   "main": "dist/vue-scroll-table.umd.js",
   "module": "dist/vue-split-grid.esm.js",
   "unpkg": "dist/vue-split-grid.min.js",
-  "browser": {},
+  "browser": {
+    "./SplitGrid": "src/components/SplitGrid.vue",
+    "./SplitGridArea": "src/components/SplitGridArea.vue",
+    "./SplitGridGutter": "src/components/SplitGridGutter.vue"
+  },
   "scripts": {
     "serve": "vue serve --open examples/main.js",
     "lint": "vue-cli-service lint",
