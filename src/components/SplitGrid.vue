@@ -107,23 +107,27 @@ export default {
       .filter(({ tag }) => tag.endsWith('SplitGridGutter'))
       .forEach(childVNode => {
         if (childVNode.componentInstance.$props.direction === 'vertical') {
-          columns.push({
-            element: childVNode.elm,
-            track: childVNode.componentInstance.$props.track
-          });
+          columns.push(childVNode);
         } else if (
           childVNode.componentInstance.$props.direction === 'horizontal'
         ) {
-          rows.push({
-            element: childVNode.elm,
-            track: childVNode.componentInstance.$props.track
-          });
+          rows.push(childVNode);
         }
       });
 
+    const mapGutters = childVNode => {
+      return {
+        element: childVNode.elm,
+        track: childVNode.componentInstance.$props.track
+      };
+    };
+
+    const columnGutters = columns.map(mapGutters);
+    const rowGutters = rows.map(mapGutters);
+
     this.instance = SplitGrid({
-      columnGutters: columns,
-      rowGutters: rows,
+      columnGutters,
+      rowGutters,
       ...this.$props
     });
   },
