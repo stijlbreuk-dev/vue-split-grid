@@ -126,13 +126,24 @@ export default {
     const rowGutters = rows.map(mapGutters);
 
     this.instance = SplitGrid({
+      ...this.$props,
       columnGutters,
       rowGutters,
-      ...this.$props
+      onDrag: this.createEmitEventHandler('drag'),
+      onDragStart: this.createEmitEventHandler('drag-start'),
+      onDragEnd: this.createEmitEventHandler('drag-end'),
     });
   },
   beforeDestroy() {
     this.instance.destroy(true);
+  },
+  methods: {
+    createEmitEventHandler(eventName) {
+      const vm = this;
+      return function () {
+        vm.$emit(eventName, arguments);
+      }
+    }
   }
 };
 </script>
