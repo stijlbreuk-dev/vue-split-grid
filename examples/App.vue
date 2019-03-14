@@ -63,10 +63,10 @@ body {
 .sb_split-grid {
   height: 100%;
   display: grid;
-  grid-template-rows: 1fr repeat(2, 5px 1fr);
+  grid-template-rows: 1fr 5px 1fr;
 }
 
 .sb_sub-grid {
-  grid-template-columns: 1fr repeat(2, 5px 1fr);
+  grid-template-columns: 1fr 5px 1fr 5px 1fr;
 }
 </style>
