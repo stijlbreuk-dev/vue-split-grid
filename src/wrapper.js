@@ -7,13 +7,13 @@ const components = {
   SplitGrid: SplitGridComponent,
   SplitGridArea: SplitGridAreaComponent,
   SplitGridGutter: SplitGridGutterComponent
-}
+};
 
 // Declare install function executed by Vue.use()
 function install(Vue) {
   if (install.installed) return;
   install.installed = true;
-  Object.entries(components).forEach(([ key, component ]) => {
+  Object.entries(components).forEach(([key, component]) => {
     Vue.component(key, component);
   });
 }
@@ -23,11 +23,8 @@ function install(Vue) {
 // export const SplitGridGutter = SplitGridGutterComponent;
 
 // Create module definition for Vue.use()
-export default {
-  install,
-  SplitGrid: SplitGridComponent,
-  SplitGridArea: SplitGridAreaComponent,
-  SplitGridGutter: SplitGridGutterComponent
+const plugin = {
+  install
 };
 
 // Auto-install when vue is found (eg. in browser via <script> tag)
@@ -40,3 +37,10 @@ if (typeof window !== 'undefined') {
 if (GlobalVue) {
   GlobalVue.use(plugin);
 }
+
+export default {
+  install,
+  SplitGrid: SplitGridComponent,
+  SplitGridArea: SplitGridAreaComponent,
+  SplitGridGutter: SplitGridGutterComponent
+};

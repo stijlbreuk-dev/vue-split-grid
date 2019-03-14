@@ -13,8 +13,9 @@
   "scripts": {
     "serve": "vue serve --open examples/main.js",
     "lint": "vue-cli-service lint",
-    "prepublishOnly": "npm run build",
-    "build": "npm run build:umd & npm run build:es & npm run build:unpkg",
+    "prepublishOnly": "npm run build:vue",
+    "build:vue": "vue-cli-service build --target lib --name vue-split-grid ./src/wrapper.js",
+    "build:rollup": "npm run build:umd & npm run build:es & npm run build:unpkg",
     "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/vue-split-grid.umd.js",
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/vue-split-grid.esm.js",
     "build:unpkg": "cross-env SB_MINIFY=true rollup --config build/rollup.config.js --format iife --file dist/vue-split-grid.min.js"
