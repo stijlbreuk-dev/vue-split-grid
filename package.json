@@ -2,7 +2,7 @@
   "name": "vue-split-grid",
   "version": "0.3.0",
   "description": "A Vue component based on Split Grid",
-  "main": "dist/vue-scroll-table.umd.js",
+  "main": "dist/vue-split-grid.umd.js",
   "module": "dist/vue-split-grid.common.js",
   "unpkg": "dist/vue-split-grid.umd.min.js",
   "browser": {

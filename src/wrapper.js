@@ -18,10 +18,6 @@ function install(Vue) {
   });
 }
 
-// export const SplitGrid = SplitGridComponent;
-// export const SplitGridArea = SplitGridAreaComponent;
-// export const SplitGridGutter = SplitGridGutterComponent;
-
 // Create module definition for Vue.use()
 const plugin = {
   install
