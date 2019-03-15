@@ -129,21 +129,34 @@ export default {
       ...this.$props,
       columnGutters,
       rowGutters,
-      onDrag: this.createEmitEventHandler('drag'),
-      onDragStart: this.createEmitEventHandler('drag-start'),
-      onDragEnd: this.createEmitEventHandler('drag-end'),
+      onDrag: this.onDrag,
+      onDragStart: this.onDragStart,
+      onDragEnd: this.onDragEnd
     });
   },
   beforeDestroy() {
     this.instance.destroy(true);
   },
   methods: {
-    createEmitEventHandler(eventName) {
-      const vm = this;
-      return function () {
-        vm.$emit(eventName, arguments);
-      }
-    }
+    onDrag(direction, track, gridTemplateStyle) {
+      this.$emit('drag', {
+        direction,
+        gridTemplateStyle,
+        track
+      });
+    },
+    onDragStart(direction, track) {
+      this.$emit('drag-start', {
+        direction,
+        track
+      });
+    },
+    onDragEnd(direction, track) {
+      this.$emit('drag-end', {
+        direction,
+        track
+      });
+    },
   }
 };
 </script>
