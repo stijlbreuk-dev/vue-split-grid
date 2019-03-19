@@ -1,19 +1,35 @@
 <template>
   <div id="app">
-    <SplitGrid class="sb_split-grid"
-               v-bind="splitGridOptions">
-      <SplitGrid v-bind="splitGridOptions"
-                 class="sb_sub-grid">
+    <input
+      id=""
+      v-model="hide"
+      type="checkbox"
+      name="">
+    <SplitGrid
+      class="sb_split-grid"
+      v-bind="splitGridOptions"
+      @drag="log('drag', $event)"
+      @drag-start="log('drag-start', $event)"
+      @drag-end="log('drag-end', $event)">
+      <SplitGrid
+        v-bind="splitGridOptions"
+        class="sb_sub-grid"
+        @drag="log('drag', $event)"
+        @drag-start="log('drag-start', $event)"
+        @drag-end="log('drag-end', $event)">
         <SplitGridArea>column 1</SplitGridArea>
-        <SplitGridGutter :track="1"
-                         direction="vertical" />
+        <SplitGridGutter
+          direction="vertical" />
         <SplitGridArea>column 2</SplitGridArea>
-        <SplitGridGutter :track="3"
-                         direction="vertical" />
-        <SplitGridArea>column 3</SplitGridArea>
+        <SplitGridGutter
+          v-if="!hide"
+          direction="vertical" />
+        <SplitGridArea v-if="!hide">
+          column 3
+        </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter :track="1"
-                       direction="horizontal" />
+      <SplitGridGutter
+        direction="horizontal" />
       <SplitGridArea>
         row 3
       </SplitGridArea>
@@ -36,13 +52,19 @@ export default {
         columnSnapOffset: 0,
         rowSnapOffset: 0,
         dragInterval: 5,
-        columnDragInter5al: 5,
+        columnDragInterval: 5,
         rowDragInterval: 5,
         cursor: null,
         columnCursor: null,
         rowCursor: null
-      }
+      },
+      hide: false
     };
+  },
+  methods: {
+    log() {
+      console.log(...arguments);
+    }
   }
 };
 </script>
@@ -50,7 +72,6 @@ export default {
 body {
   margin: 0;
 }
-
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -59,13 +80,11 @@ body {
   color: #2c3e50;
   height: 100vh;
 }
-
 .sb_split-grid {
   height: 100%;
   display: grid;
   grid-template-rows: 1fr 5px 1fr;
 }
-
 .sb_sub-grid {
   grid-template-columns: 1fr 5px 1fr 5px 1fr;
 }

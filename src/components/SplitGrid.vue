@@ -89,10 +89,10 @@ export default {
   },
   mounted() {
     const { default: childComponents } = this.$slots;
-    const validChildComponents = childComponents.every(({ tag }) =>
+    const hasValidChildComponents = childComponents.every(({ tag }) =>
       VALID_CHILD_COMPONENTS_REGEX.test(tag)
     );
-    if (!validChildComponents) {
+    if (!hasValidChildComponents) {
       throw new Error(
         `Invalid child components. SplitGrid only allows ${VALID_CHILD_COMPONENTS.join(
           ', '
@@ -100,30 +100,26 @@ export default {
       );
     }
 
-    const columns = [];
-    const rows = [];
+    const columnGutters = [];
+    const rowGutters = [];
 
-    childComponents
-      .filter(({ tag }) => tag.endsWith('SplitGridGutter'))
-      .forEach(childVNode => {
+    childComponents.forEach((childVNode, index) => {
+      if (childVNode.tag.endsWith('SplitGridGutter')) {
         if (childVNode.componentInstance.$props.direction === 'vertical') {
-          columns.push(childVNode);
+          columnGutters.push({
+            element: childVNode.elm,
+            track: index
+          });
         } else if (
           childVNode.componentInstance.$props.direction === 'horizontal'
         ) {
-          rows.push(childVNode);
+          rowGutters.push({
+            element: childVNode.elm,
+            track: index
+          });
         }
-      });
-
-    const mapGutters = childVNode => {
-      return {
-        element: childVNode.elm,
-        track: childVNode.componentInstance.$props.track
-      };
-    };
-
-    const columnGutters = columns.map(mapGutters);
-    const rowGutters = rows.map(mapGutters);
+      }
+    });
 
     this.instance = SplitGrid({
       ...this.$props,
@@ -156,7 +152,7 @@ export default {
         direction,
         track
       });
-    },
+    }
   }
 };
 </script>

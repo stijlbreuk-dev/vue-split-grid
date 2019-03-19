@@ -2,10 +2,6 @@
 export default {
   name: 'SplitGridGutter',
   props: {
-    track: {
-      type: Number,
-      required: true
-    },
     direction: {
       type: String,
       required: true,
