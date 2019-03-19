@@ -80,6 +80,12 @@ export default {
     rowCursor: {
       type: String,
       default: 'row-resize'
+    },
+    writeStyle: {
+      type: Function,
+      default: (grid, gridTemplateProp, gridTemplateStyle) => {
+        grid.style[gridTemplateProp] = gridTemplateStyle;
+      }
     }
   },
   data() {

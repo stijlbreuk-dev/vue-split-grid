@@ -56,7 +56,8 @@ export default {
         rowDragInterval: 5,
         cursor: null,
         columnCursor: null,
-        rowCursor: null
+        rowCursor: null,
+        writeStyle: this.writeStyle
       },
       hide: false
     };
@@ -64,6 +65,9 @@ export default {
   methods: {
     log() {
       console.log(...arguments);
+    },
+    writeStyle(grid, gridTemplateProp, gridTemplateStyle) {
+      grid.style[gridTemplateProp] = gridTemplateStyle
     }
   }
 };
