@@ -356,6 +356,11 @@ export default {
      * Split Grid events
      */
     onDrag(direction, track, gridTemplateStyle) {
+      const gridTemplateStyleParts = gridTemplateStyle.split(' ');
+      const visibleChildComponents = this.getVisibleChildComponents();
+      visibleChildComponents.forEach(({ componentInstance: { uuid } }, index) => {
+        this.previousChildComponentSizes[uuid] = gridTemplateStyleParts[index];
+      });
       this.$emit('drag', {
         direction,
         gridTemplateStyle,
