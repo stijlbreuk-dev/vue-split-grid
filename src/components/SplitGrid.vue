@@ -352,8 +352,11 @@ export default {
       const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
       const styleString = visibleChildComponentStyles.join(' ');
 
+      // eslint-disable-next-line no-unused-vars
+      const { animation, direction, gutterSize, show, size, ...splitGridProperties} = this.$props;
+
       this.splitGrid = SplitGrid({
-        ...this.$props,
+        ...splitGridProperties,
         columnGutters,
         rowGutters,
         onDrag: this.onDrag,
