@@ -1,5 +1,7 @@
 <template>
-  <div class="vsg_split-grid">
+  <div
+    v-show="show"
+    class="vsg_split-grid">
     <slot />
   </div>
 </template>
@@ -190,7 +192,13 @@ export default {
     return {
       animationInterval: null,
       splitGrid: null,
-      previousChildComponentSizes: {}
+      previousChildComponentSizes: {},
+      /**
+       * Determine if a grid is a subgrid by checking the parents vNode tag for now, provide / inject
+       * could be used but then we would need the default inject value functionality which is only
+       * supported by >= Vue 2.5
+       */
+      isSubGrid: this.$parent.$vnode.tag.endsWith('SplitGrid')
     };
   },
   computed: {},
@@ -201,11 +209,24 @@ export default {
     this.$on('vsg:grid-area.show', this.onShowGridArea);
     this.$on('vsg:grid-area.size', this.onGridAreaSizeChange);
 
+    this.$on('vsg:child.show', this.onChildShow);
     this.$on('vsg:child.add', this.onChildAdded);
     this.$on('vsg:child.remove', this.onChildRemoved);
+
+    if (this.isSubGrid) {
+      this.$parent.$emit('vsg:child.add', {
+        type: 'grid',
+        uuid: this.uuid,
+        size: this.size
+      });
+    }
   },
   beforeDestroy() {
     this.splitGrid.destroy(true);
+
+    if (this.isSubGrid) {
+      this.$parent.$emit('vsg:child.remove', { uuid: this.uuid });
+    }
   },
   methods: {
     getGutters() {
@@ -237,8 +258,13 @@ export default {
     getVisibleChildComponentStyles() {
       return this.getVisibleChildComponents().map(
         ({ componentInstance: { uuid } }) => {
-          const { unit, value } = this.previousChildComponentSizes[uuid];
-          return `${value}${unit}`;
+          const size = this.previousChildComponentSizes[uuid];
+          // When a sub grid has been removed it's size may have been removed already.
+          if (size) {
+            const { unit, value } = size;
+            return `${value}${unit}`;
+          }
+          return;
         }
       );
     },
@@ -325,7 +351,6 @@ export default {
 
         if (this.direction === 'column') {
           newGutters.forEach(({ element, track }) => {
-            console.log({ element });
             this.splitGrid.addColumnGutter(element, track);
           });
         } else {
@@ -360,13 +385,13 @@ export default {
       visibleChildComponents.forEach(
         ({ componentInstance: { uuid } }, index) => {
           const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
-          const [ value, unit ] = gridTemplateStyleParts[index]
+          const [value, unit] = gridTemplateStyleParts[index]
             .split(splitValueAndUnitRegex)
             .filter(part => part !== '');
           this.previousChildComponentSizes[uuid] = {
             value,
             unit
-          }
+          };
         }
       );
       this.$emit('drag', {
@@ -399,6 +424,8 @@ export default {
       this.updateGridCSS();
     },
     onChildAdded({ type, uuid, size }) {
+      this.validateChildComponents();
+
       this.previousChildComponentSizes = {
         ...this.previousChildComponentSizes,
         [uuid]: size

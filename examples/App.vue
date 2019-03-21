@@ -2,11 +2,18 @@
   <div id="app">
     <input
       id=""
-      v-model="show"
+      v-model="showRow1"
       type="checkbox"
-      name="show"
+      name="showRow1"
     >
-    <label for="show">Toggle column</label>
+    <label for="showRow1">Toggle row 1</label>
+    <input
+      id=""
+      v-model="showColumn2"
+      type="checkbox"
+      name="showColumn2"
+    >
+    <label for="showColumn2">Toggle column 2</label>
     <input
       id=""
       v-model="toggleSize"
@@ -24,6 +31,7 @@
       @drag-end="log('drag-end', $event)"
     >
       <SplitGrid
+        v-if="showRow1"
         v-bind="splitGridOptions"
         class="sb_sub-grid"
         @drag="log('drag', $event)"
@@ -31,8 +39,8 @@
         @drag-end="log('drag-end', $event)"
       >
         <SplitGridArea>column 1</SplitGridArea>
-        <SplitGridGutter v-if="show" />
-        <SplitGridArea v-if="show">
+        <SplitGridGutter v-if="showColumn2" />
+        <SplitGridArea v-if="showColumn2">
           column 2
         </SplitGridArea>
         <SplitGridGutter />
@@ -40,7 +48,7 @@
           column 3
         </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter />
+      <SplitGridGutter v-if="showRow1" />
       <SplitGridArea :size="size">
         row 3
       </SplitGridArea>
@@ -58,8 +66,8 @@ export default {
       },
       splitGridOptions: {
         minSize: 100,
-        columnMinSize: 100,
-        rowMinSize: 20,
+        columnMinSize: 20,
+        rowMinSize: 200,
         columnMinSizes: null,
         rowMinSizes: null,
         snapOffset: 0,
@@ -68,12 +76,13 @@ export default {
         dragInterval: 5,
         columnDragInterval: 5,
         rowDragInterval: 5,
-        cursor: null,
-        columnCursor: null,
-        rowCursor: null,
+        // cursor: null,
+        // columnCursor: null,
+        // rowCursor: null,
         writeStyle: this.writeStyle
       },
-      show: false,
+      showRow1: true,
+      showColumn2: false,
       toggleSize: true
     };
   },
