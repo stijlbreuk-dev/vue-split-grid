@@ -261,13 +261,19 @@ export default {
       const easingFunction = EasingFunctions[this.animation.easing];
 
       const getStyleValueAndUnit = (styleString) => {
-        const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+        const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
         return styleString
           .split(splitValueAndUnitRegex)
+          // Fix empty matches: https://stackoverflow.com/a/19918223
           .filter(part => part !== '');
       }
 
       const [currentStringValue, currentUnit] = getStyleValueAndUnit(gridTemplateStyleParts[elementIndex]);
+
+      if (currentUnit !== newUnit) {
+        console.warn("[Vue Split Grid]: Can't animate from one unit to a different unit value.");
+        return;
+      }
 
       const currentValue = (() => {
         if (currentUnit === 'fr') {
@@ -447,9 +453,10 @@ export default {
       const visibleChildComponents = this.getVisibleChildComponents();
       visibleChildComponents.forEach(
         ({ componentInstance: { uuid } }, index) => {
-          const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+          const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
           const [value, unit] = gridTemplateStyleParts[index]
             .split(splitValueAndUnitRegex)
+            // Fix empty matches: https://stackoverflow.com/a/19918223
             .filter(part => part !== '');
           this.previousChildComponentSizes[uuid] = {
             value,

@@ -67,7 +67,7 @@ export default {
       splitGridOptions: {
         minSize: 100,
         columnMinSize: 35,
-        rowMinSize: 200,
+        rowMinSize: 25,
         columnMinSizes: null,
         rowMinSizes: null,
         snapOffset: 0,
@@ -88,7 +88,7 @@ export default {
   },
   computed: {
     size() {
-      return this.toggleSize ? { value: 500, unit: 'px'} : undefined;
+      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 50, unit: 'px'};
     }
   },
   methods: {
