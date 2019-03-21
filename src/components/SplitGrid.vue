@@ -305,7 +305,6 @@ export default {
             ? 'grid-template-columns'
             : 'grid-template-rows'
         ] = styleString;
-        console.log(this.splitGrid);
       });
     },
     updateGutters() {
@@ -358,9 +357,18 @@ export default {
     onDrag(direction, track, gridTemplateStyle) {
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
       const visibleChildComponents = this.getVisibleChildComponents();
-      visibleChildComponents.forEach(({ componentInstance: { uuid } }, index) => {
-        this.previousChildComponentSizes[uuid] = gridTemplateStyleParts[index];
-      });
+      visibleChildComponents.forEach(
+        ({ componentInstance: { uuid } }, index) => {
+          const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+          const [ value, unit ] = gridTemplateStyleParts[index]
+            .split(splitValueAndUnitRegex)
+            .filter(part => part !== '');
+          this.previousChildComponentSizes[uuid] = {
+            value,
+            unit
+          }
+        }
+      );
       this.$emit('drag', {
         direction,
         gridTemplateStyle,
