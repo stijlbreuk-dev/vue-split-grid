@@ -2,35 +2,46 @@
   <div id="app">
     <input
       id=""
-      v-model="hide"
+      v-model="show"
       type="checkbox"
-      name="">
+      name="show"
+    >
+    <label for="show">Toggle column</label>
+    <input
+      id=""
+      v-model="toggleSize"
+      type="checkbox"
+      name="toggle-size"
+    >
+    <label for="toggle-size">Toggle bottom row size</label>
     <SplitGrid
       class="sb_split-grid"
       v-bind="splitGridOptions"
+      :animation="animation"
+      direction="row"
       @drag="log('drag', $event)"
       @drag-start="log('drag-start', $event)"
-      @drag-end="log('drag-end', $event)">
+      @drag-end="log('drag-end', $event)"
+    >
       <SplitGrid
         v-bind="splitGridOptions"
         class="sb_sub-grid"
         @drag="log('drag', $event)"
         @drag-start="log('drag-start', $event)"
-        @drag-end="log('drag-end', $event)">
+        @drag-end="log('drag-end', $event)"
+      >
         <SplitGridArea>column 1</SplitGridArea>
-        <SplitGridGutter
-          direction="vertical" />
-        <SplitGridArea>column 2</SplitGridArea>
-        <SplitGridGutter
-          v-if="!hide"
-          direction="vertical" />
-        <SplitGridArea v-if="!hide">
+        <SplitGridGutter v-if="show" />
+        <SplitGridArea v-if="show">
+          column 2
+        </SplitGridArea>
+        <SplitGridGutter />
+        <SplitGridArea>
           column 3
         </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter
-        direction="horizontal" />
-      <SplitGridArea>
+      <SplitGridGutter />
+      <SplitGridArea :size="size">
         row 3
       </SplitGridArea>
     </SplitGrid>
@@ -42,10 +53,14 @@ export default {
   name: 'App',
   data() {
     return {
+      animation: {
+        duration: 500,
+        easing: 'easeInQuad'
+      },
       splitGridOptions: {
         minSize: 100,
-        columnMinSize: 250,
-        rowMinSize: 100,
+        columnMinSize: 100,
+        rowMinSize: 20,
         columnMinSizes: null,
         rowMinSizes: null,
         snapOffset: 0,
@@ -59,15 +74,21 @@ export default {
         rowCursor: null,
         writeStyle: this.writeStyle
       },
-      hide: false
+      show: false,
+      toggleSize: true
     };
+  },
+  computed: {
+    size() {
+      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 100, unit: 'px'};
+    }
   },
   methods: {
     log() {
-      console.log(...arguments);
+      // console.log(...arguments);
     },
     writeStyle(grid, gridTemplateProp, gridTemplateStyle) {
-      grid.style[gridTemplateProp] = gridTemplateStyle
+      grid.style[gridTemplateProp] = gridTemplateStyle;
     }
   }
 };
@@ -76,6 +97,7 @@ export default {
 body {
   margin: 0;
 }
+
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -84,12 +106,11 @@ body {
   color: #2c3e50;
   height: 100vh;
 }
+
 .sb_split-grid {
-  height: 100%;
-  display: grid;
-  grid-template-rows: 1fr 5px 1fr;
+  height: calc(100% - 30px);
 }
+
 .sb_sub-grid {
-  grid-template-columns: 1fr 5px 1fr 5px 1fr;
 }
 </style>
