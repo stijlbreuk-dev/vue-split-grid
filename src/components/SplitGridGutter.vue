@@ -27,7 +27,7 @@ export default {
   inject: ['gridData'],
   watch: {
     show(value) {
-      this.$parent.$emit('vsg:gutter.show', value);
+      this.$parent.$emit('vsg:child.show', { type: 'gutter', uuid: this.uuid, value });
     }
   },
   mounted() {
@@ -41,7 +41,7 @@ export default {
     });
   },
   destroyed() {
-    this.$parent.$emit('vsg:child.remove', { uuid: this.uuid });
+    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid });
   }
 };
 </script>

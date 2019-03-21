@@ -6,14 +6,14 @@
       type="checkbox"
       name="showRow1"
     >
-    <label for="showRow1">Toggle row 1</label>
+    <label for="showRow1">Show row 1</label>
     <input
       id=""
       v-model="showColumn2"
       type="checkbox"
       name="showColumn2"
     >
-    <label for="showColumn2">Toggle column 2</label>
+    <label for="showColumn2">Show column 2</label>
     <input
       id=""
       v-model="toggleSize"
@@ -62,11 +62,11 @@ export default {
     return {
       animation: {
         duration: 500,
-        easing: 'easeInQuad'
+        easing: 'easeInOutQuint'
       },
       splitGridOptions: {
         minSize: 100,
-        columnMinSize: 20,
+        columnMinSize: 35,
         rowMinSize: 200,
         columnMinSizes: null,
         rowMinSizes: null,
@@ -83,17 +83,17 @@ export default {
       },
       showRow1: true,
       showColumn2: false,
-      toggleSize: true
+      toggleSize: false
     };
   },
   computed: {
     size() {
-      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 100, unit: 'px'};
+      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 100, unit: 'px' };
     }
   },
   methods: {
     log() {
-      // console.log(...arguments);
+      console.log(...arguments);
     },
     writeStyle(grid, gridTemplateProp, gridTemplateStyle) {
       grid.style[gridTemplateProp] = gridTemplateStyle;

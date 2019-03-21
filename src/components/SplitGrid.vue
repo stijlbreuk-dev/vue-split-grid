@@ -174,21 +174,6 @@ export default {
       }
     }
   },
-  provide: function() {
-    const cursor = (() => {
-      if (this.direction === 'column') {
-        return this.columnCursor || this.cursor;
-      }
-      return this.rowCursor || this.cursor;
-    })();
-    return {
-      gridData: {
-        direction: this.direction,
-        gutterSize: this.gutterSize,
-        cursor
-      }
-    };
-  },
   data() {
     return {
       animationInterval: null,
@@ -206,17 +191,41 @@ export default {
       splitGrid: null
     };
   },
-  computed: {},
+  watch: {
+    show(value) {
+      if (this.isSubGrid) {
+        this.$parent.$emit('vsg:child.show', { type: 'grid', value, uuid: this.uuid });
+      }
+    },
+    size(size) {
+      if (this.isSubGrid) {
+        this.$parent.$emit('vsg:child.resize', { size, type: 'grid', uuid: this.uuid });
+      }
+    }
+  },
+  provide: function() {
+    const cursor = (() => {
+      if (this.direction === 'column') {
+        return this.columnCursor || this.cursor;
+      }
+      return this.rowCursor || this.cursor;
+    })();
+    return {
+      gridData: {
+        direction: this.direction,
+        gutterSize: this.gutterSize,
+        cursor
+      }
+    };
+  },
   mounted() {
     this.validateChildComponents();
     this.initializeSplitGrid();
-    this.$on('vsg:gutter.show', this.onShowGutter);
-    this.$on('vsg:grid-area.show', this.onShowGridArea);
-    this.$on('vsg:grid-area.size', this.onGridAreaSizeChange);
 
-    this.$on('vsg:child.show', this.onChildShow);
     this.$on('vsg:child.add', this.onChildAdded);
     this.$on('vsg:child.remove', this.onChildRemoved);
+    this.$on('vsg:child.resize', this.onChildResize);
+    this.$on('vsg:child.show', this.onChildShow);
 
     if (this.isSubGrid) {
       this.$parent.$emit('vsg:child.add', {
@@ -230,10 +239,43 @@ export default {
     this.splitGrid.destroy(true);
 
     if (this.isSubGrid) {
-      this.$parent.$emit('vsg:child.remove', { uuid: this.uuid });
+      this.$parent.$emit('vsg:child.remove', { type: 'grid', uuid: this.uuid });
     }
   },
   methods: {
+    animateSizeChange({
+      elementIndex,
+      gridTemplateStyleParts,
+      newSize: { value: newValue, unit: newUnit }
+    }) {
+      const FPS = 60;
+      const totalTicks = (this.animation.duration / 1000) * FPS;
+      const easingFunction = EasingFunctions[this.animation.easing];
+
+      const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+      const [currentStringValue, currentUnit] = gridTemplateStyleParts[
+        elementIndex
+      ]
+        .split(splitValueAndUnitRegex)
+        .filter(part => part !== '');
+      const currentValue = parseFloat(currentStringValue);
+
+      const difference = newValue - currentValue;
+      let tick = 1;
+
+      this.animationInterval = setInterval(() => {
+        if (tick === totalTicks) {
+          clearInterval(this.animationInterval);
+        }
+        const intermediateValue =
+          difference * easingFunction(tick / totalTicks);
+        gridTemplateStyleParts[elementIndex] = `${currentValue +
+          intermediateValue}${newUnit}`;
+        const newGridTemplateStyle = gridTemplateStyleParts.join(' ');
+        this.$el.style[this.gridTemplateProp] = newGridTemplateStyle;
+        tick++;
+      }, 1000 / FPS);
+    },
     getGutters() {
       const gutters = [];
       this.getVisibleChildComponents().forEach((childVNode, index) => {
@@ -412,14 +454,6 @@ export default {
     /**
      * Child events
      */
-    onShowGutter() {
-      this.updateGutters();
-      this.updateGridCSS();
-    },
-    onShowGridArea() {
-      this.updateGutters();
-      this.updateGridCSS();
-    },
     onChildAdded({ type, uuid, size }) {
       this.validateChildComponents();
 
@@ -439,8 +473,7 @@ export default {
       this.updateGutters();
       this.updateGridCSS();
     },
-
-    onGridAreaSizeChange({ size: { value, unit }, uuid }) {
+    onChildResize({ size: { value, unit }, uuid }) {
       const elementIndex = this.getVisibleChildComponents().findIndex(
         ({ componentInstance: { uuid: componentUuid } }) =>
           componentUuid === uuid
@@ -448,6 +481,14 @@ export default {
 
       const gridTemplateStyle = this.$el.style[this.gridTemplateProp];
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
+
+      this.previousChildComponentSizes = {
+        ...this.previousChildComponentSizes,
+        [uuid]: {
+          value,
+          unit
+        }
+      };
 
       if (this.animation == null) {
         gridTemplateStyleParts[elementIndex] = `${value}${unit}`;
@@ -459,35 +500,15 @@ export default {
       if (this.animationInterval) {
         clearInterval(this.animationInterval);
       }
-      this.animateSizeChange({ elementIndex, gridTemplateStyleParts, newSize: { value, unit } });
+      this.animateSizeChange({
+        elementIndex,
+        gridTemplateStyleParts,
+        newSize: { value, unit }
+      });
     },
-    animateSizeChange({ elementIndex, gridTemplateStyleParts, newSize: { value: newValue, unit: newUnit }}) {
-      const FPS = 60;
-      const lastTick = (this.animation.duration / 1000) * FPS;
-      const easingFunction = EasingFunctions[this.animation.easing];
-
-      // Fix pixel animations first, $emit event when size changes if split grid is a sub grid
-      const difference = 200;
-
-      let tick = 1;
-
-      const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
-      const [currentValue, currentUnit] = gridTemplateStyleParts[elementIndex]
-        .split(splitValueAndUnitRegex)
-        .filter(part => part !== '');
-
-      console.log(value, currentValue, currentUnit);
-
-      this.animationInterval = setInterval(() => {
-        if (tick === lastTick) {
-          clearInterval(this.animationInterval);
-        }
-        const intermediateValue = difference * easingFunction(tick / lastTick);
-        gridTemplateStyleParts[elementIndex] = `${100 + intermediateValue}px`;
-        const newGridTemplateStyle = gridTemplateStyleParts.join(' ');
-        this.$el.style[this.gridTemplateProp] = newGridTemplateStyle;
-        tick++;
-      }, 1000 / 60);
+    onChildShow() {
+      this.updateGutters();
+      this.updateGridCSS();
     }
   }
 };

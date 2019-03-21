@@ -47,10 +47,10 @@ export default {
   },
   watch: {
     show(value) {
-      this.$parent.$emit('vsg:grid-area.show', value);
+      this.$parent.$emit('vsg:child.show', { type: 'grid-area', uuid: this.uuid, value });
     },
     size(size) {
-      this.$parent.$emit('vsg:grid-area.size', { size, uuid: this.uuid });
+      this.$parent.$emit('vsg:child.resize', { size, type: 'grid-area', uuid: this.uuid });
     }
   },
   mounted() {
@@ -61,7 +61,7 @@ export default {
     });
   },
   destroyed() {
-    this.$parent.$emit('vsg:child.remove', { uuid: this.uuid });
+    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid });
   }
 };
 </script>
