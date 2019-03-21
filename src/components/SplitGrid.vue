@@ -1,7 +1,8 @@
 <template>
   <div
     v-show="show"
-    class="vsg_split-grid">
+    class="vsg_split-grid"
+  >
     <slot />
   </div>
 </template>
@@ -191,14 +192,18 @@ export default {
   data() {
     return {
       animationInterval: null,
-      splitGrid: null,
-      previousChildComponentSizes: {},
+      gridTemplateProp:
+        this.direction === 'column'
+          ? 'grid-template-columns'
+          : 'grid-template-rows',
       /**
        * Determine if a grid is a subgrid by checking the parents vNode tag for now, provide / inject
        * could be used but then we would need the default inject value functionality which is only
        * supported by >= Vue 2.5
        */
-      isSubGrid: this.$parent.$vnode.tag.endsWith('SplitGrid')
+      isSubGrid: this.$parent.$vnode.tag.endsWith('SplitGrid'),
+      previousChildComponentSizes: {},
+      splitGrid: null
     };
   },
   computed: {},
@@ -316,21 +321,13 @@ export default {
         gridTemplateRows: this.direction === 'row' ? styleString : ''
       });
 
-      this.$el.style[
-        this.direction === 'column'
-          ? 'grid-template-columns'
-          : 'grid-template-rows'
-      ] = styleString;
+      this.$el.style[this.gridTemplateProp] = styleString;
     },
     updateGridCSS() {
       this.$nextTick(() => {
         const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
         const styleString = visibleChildComponentStyles.join(' ');
-        this.$el.style[
-          this.direction === 'column'
-            ? 'grid-template-columns'
-            : 'grid-template-rows'
-        ] = styleString;
+        this.$el.style[this.gridTemplateProp] = styleString;
       });
     },
     updateGutters() {
@@ -443,39 +440,52 @@ export default {
       this.updateGridCSS();
     },
 
-    onGridAreaSizeChange({ value, uuid }) {
-      console.log('size change');
-      const gridTemplateStyle = this.$el.style['grid-template-rows'];
+    onGridAreaSizeChange({ size: { value, unit }, uuid }) {
+      const elementIndex = this.getVisibleChildComponents().findIndex(
+        ({ componentInstance: { uuid: componentUuid } }) =>
+          componentUuid === uuid
+      );
 
+      const gridTemplateStyle = this.$el.style[this.gridTemplateProp];
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
 
       if (this.animation == null) {
-        gridTemplateStyleParts[2] = `${value}px`;
+        gridTemplateStyleParts[elementIndex] = `${value}${unit}`;
         const newGridTemplateStyle = gridTemplateStyleParts.join(' ');
-        this.$el.style['grid-template-rows'] = newGridTemplateStyle;
+        this.$el.style[this.gridTemplateProp] = newGridTemplateStyle;
         return;
       }
 
       if (this.animationInterval) {
         clearInterval(this.animationInterval);
       }
-
+      this.animateSizeChange({ elementIndex, gridTemplateStyleParts, newSize: { value, unit } });
+    },
+    animateSizeChange({ elementIndex, gridTemplateStyleParts, newSize: { value: newValue, unit: newUnit }}) {
       const FPS = 60;
       const lastTick = (this.animation.duration / 1000) * FPS;
       const easingFunction = EasingFunctions[this.animation.easing];
 
-      const diff = 200;
+      // Fix pixel animations first, $emit event when size changes if split grid is a sub grid
+      const difference = 200;
 
       let tick = 1;
+
+      const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+      const [currentValue, currentUnit] = gridTemplateStyleParts[elementIndex]
+        .split(splitValueAndUnitRegex)
+        .filter(part => part !== '');
+
+      console.log(value, currentValue, currentUnit);
 
       this.animationInterval = setInterval(() => {
         if (tick === lastTick) {
           clearInterval(this.animationInterval);
         }
-        const newValue = diff * easingFunction(tick / lastTick);
-        gridTemplateStyleParts[2] = `${100 + newValue}px`;
+        const intermediateValue = difference * easingFunction(tick / lastTick);
+        gridTemplateStyleParts[elementIndex] = `${100 + intermediateValue}px`;
         const newGridTemplateStyle = gridTemplateStyleParts.join(' ');
-        this.$el.style['grid-template-rows'] = newGridTemplateStyle;
+        this.$el.style[this.gridTemplateProp] = newGridTemplateStyle;
         tick++;
       }, 1000 / 60);
     }
