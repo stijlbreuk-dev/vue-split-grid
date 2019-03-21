@@ -1,3 +1,11 @@
+<template>
+  <div
+    v-show="show"
+    class="vsg_area"
+  >
+    <slot />
+  </div>
+</template>
 <script>
 import UuidMixin from '../mixins/uuid.js';
 
@@ -35,7 +43,7 @@ export default {
         }
         return true;
       }
-    },
+    }
   },
   watch: {
     show(value) {
@@ -46,19 +54,16 @@ export default {
     }
   },
   mounted() {
-    this.$parent.$emit('vsg:child.add', { type: 'grid-area', uuid: this.uuid, size: this.size });
+    this.$parent.$emit('vsg:child.add', {
+      type: 'grid-area',
+      uuid: this.uuid,
+      size: this.size
+    });
   },
   destroyed() {
     this.$parent.$emit('vsg:child.remove', { uuid: this.uuid });
-  },
+  }
 };
 </script>
-<template>
-  <div
-    v-show="show"
-    class="vsg_area">
-    <slot />
-  </div>
-</template>
 <style lang="scss" scoped>
 </style>

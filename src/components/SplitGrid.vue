@@ -1,3 +1,8 @@
+<template>
+  <div class="vsg_split-grid">
+    <slot />
+  </div>
+</template>
 <script>
 import SplitGrid from 'split-grid';
 
@@ -393,11 +398,10 @@ export default {
       const newChildComponentSizes = { ...this.previousChildComponentSizes };
       delete newChildComponentSizes[uuid];
       this.previousChildComponentSizes = newChildComponentSizes;
-      
+
       this.updateGutters();
       this.updateGridCSS();
     },
-
 
     onGridAreaSizeChange({ value, uuid }) {
       console.log('size change');
@@ -438,11 +442,6 @@ export default {
   }
 };
 </script>
-<template>
-  <div class="vsg_split-grid">
-    <slot />
-  </div>
-</template>
 <style lang="scss" scoped>
 .vsg_split-grid {
   display: grid;

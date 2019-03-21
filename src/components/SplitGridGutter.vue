@@ -1,3 +1,11 @@
+<template>
+  <div
+    v-show="show"
+    class="vsg_gutter"
+    :class="{ 'vsg_gutter-horizontal': gridData.direction === 'horizontal', 'vsg_gutter-vertical': gridData.direction === 'vertical' }"
+    :style="{ cursor: gridData.cursor }"
+  />
+</template>
 <script>
 import UuidMixin from '../mixins/uuid.js';
 
@@ -37,14 +45,6 @@ export default {
   }
 };
 </script>
-<template>
-  <div
-    v-show="show"
-    class="vsg_gutter"
-    :class="{ 'vsg_gutter-horizontal': gridData.direction === 'horizontal', 'vsg_gutter-vertical': gridData.direction === 'vertical' }"
-    :style="{ cursor: gridData.cursor }"
-  />
-</template>
 <style lang="scss" scoped>
 .vsg_gutter {
   background-color: gray;
