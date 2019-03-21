@@ -25,17 +25,17 @@ export default {
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof value !== 'number') {
-          console.warn("Property 'value' should be of type Number");
+          console.warn("[Vue Split Grid]: Property 'value' should be of type Number");
           return false;
         }
         if (typeof unit !== 'string') {
-          console.warn("Property 'unit' should be of type String");
+          console.warn("[Vue Split Grid]: Property 'unit' should be of type String");
           return false;
         }
 
         if (Object.keys(rest).length > 0) {
           console.warn(
-            `Invalid size properties: '${Object.keys(rest).join(
+            `[Vue Split Grid]: Invalid size properties: '${Object.keys(rest).join(
               "', '"
             )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
           );

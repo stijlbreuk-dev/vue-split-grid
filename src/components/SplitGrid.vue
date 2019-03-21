@@ -37,17 +37,17 @@ export default {
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof duration !== 'number') {
-          console.warn("Property 'duration' should be of type Number");
+          console.warn("[Vue Split Grid]: Property 'duration' should be of type Number");
           return false;
         }
         if (typeof easing !== 'string') {
-          console.warn("Property 'easing' should be of type String");
+          console.warn("[Vue Split Grid]: Property 'easing' should be of type String");
           return false;
         }
 
         if (Object.keys(rest).length > 0) {
           console.warn(
-            `Invalid animation properties: '${Object.keys(rest).join(
+            `[Vue Split Grid]: Invalid animation properties: '${Object.keys(rest).join(
               "', '"
             )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
           );
@@ -77,17 +77,17 @@ export default {
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof value !== 'number') {
-          console.warn("Property 'value' should be of type Number");
+          console.warn("[Vue Split Grid]: Property 'value' should be of type Number");
           return false;
         }
         if (typeof unit !== 'string') {
-          console.warn("Property 'unit' should be of type String");
+          console.warn("[Vue Split Grid]: Property 'unit' should be of type String");
           return false;
         }
 
         if (Object.keys(rest).length > 0) {
           console.warn(
-            `Invalid size properties: '${Object.keys(rest).join(
+            `[Vue Split Grid]: Invalid size properties: '${Object.keys(rest).join(
               "', '"
             )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
           );
@@ -105,13 +105,13 @@ export default {
     },
     columnMinSize: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.minSize;
       }
     },
     rowMinSize: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.minSize;
       }
     },
@@ -129,13 +129,13 @@ export default {
     },
     columnSnapOffset: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.snapOffset;
       }
     },
     rowSnapOffset: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.snapOffset;
       }
     },
@@ -145,13 +145,13 @@ export default {
     },
     columnDragInterval: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.dragInterval;
       }
     },
     rowDragInterval: {
       type: Number,
-      default: function() {
+      default: function () {
         return this.dragInterval;
       }
     },
@@ -194,16 +194,24 @@ export default {
   watch: {
     show(value) {
       if (this.isSubGrid) {
-        this.$parent.$emit('vsg:child.show', { type: 'grid', value, uuid: this.uuid });
+        this.$parent.$emit('vsg:child.show', {
+          type: 'grid',
+          value,
+          uuid: this.uuid
+        });
       }
     },
     size(size) {
       if (this.isSubGrid) {
-        this.$parent.$emit('vsg:child.resize', { size, type: 'grid', uuid: this.uuid });
+        this.$parent.$emit('vsg:child.resize', {
+          size,
+          type: 'grid',
+          uuid: this.uuid
+        });
       }
     }
   },
-  provide: function() {
+  provide: function () {
     const cursor = (() => {
       if (this.direction === 'column') {
         return this.columnCursor || this.cursor;
@@ -252,13 +260,26 @@ export default {
       const totalTicks = (this.animation.duration / 1000) * FPS;
       const easingFunction = EasingFunctions[this.animation.easing];
 
-      const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
-      const [currentStringValue, currentUnit] = gridTemplateStyleParts[
-        elementIndex
-      ]
-        .split(splitValueAndUnitRegex)
-        .filter(part => part !== '');
-      const currentValue = parseFloat(currentStringValue);
+      const getStyleValueAndUnit = (styleString) => {
+        const splitValueAndUnitRegex = /(\d?\.?\d+)(\w*)/;
+        return styleString
+          .split(splitValueAndUnitRegex)
+          .filter(part => part !== '');
+      }
+
+      const [currentStringValue, currentUnit] = getStyleValueAndUnit(gridTemplateStyleParts[elementIndex]);
+
+      const currentValue = (() => {
+        if (currentUnit === 'fr') {
+          const camelCasedGridTemplateProp = this.gridTemplateProp.endsWith('columns') ? 'gridTemplateColumns' : 'gridTemplateRows';
+          const computedTemplatePropStyle = getComputedStyle(this.$el)[camelCasedGridTemplateProp];
+          const elementPropStyle = computedTemplatePropStyle.split(' ')[elementIndex];
+
+          const [computedStringValue] = getStyleValueAndUnit(elementPropStyle);
+          return parseFloat(computedStringValue);
+        }
+        return parseFloat(currentStringValue)
+      })();
 
       const difference = newValue - currentValue;
       let tick = 1;
@@ -352,8 +373,8 @@ export default {
       const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
       const styleString = visibleChildComponentStyles.join(' ');
 
-      // eslint-disable-next-line no-unused-vars
-      const { animation, direction, gutterSize, show, size, ...splitGridProperties} = this.$props;
+      // eslint-disable-next-line
+      const { animation, direction, gutterSize, show, size, ...splitGridProperties } = this.$props;
 
       this.splitGrid = SplitGrid({
         ...splitGridProperties,

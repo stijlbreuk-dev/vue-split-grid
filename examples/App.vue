@@ -88,7 +88,7 @@ export default {
   },
   computed: {
     size() {
-      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 100, unit: 'px' };
+      return this.toggleSize ? { value: 500, unit: 'px'} : undefined;
     }
   },
   methods: {
