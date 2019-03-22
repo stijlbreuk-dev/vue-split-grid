@@ -399,7 +399,7 @@ export default {
       const styleString = visibleChildComponentStyles.join(' ');
 
       // eslint-disable-next-line
-      const { animation, direction, gutterSize, show, size, ...splitGridProperties } = this.$props;
+      const { animation, direction, gutterSize, show, size, transition, ...splitGridProperties } = this.$props;
 
       this.splitGrid = SplitGrid({
         ...splitGridProperties,
@@ -521,10 +521,11 @@ export default {
       this.previousChildComponentSizes = newChildComponentSizes;
 
       if (waitForTransition) {
-        this.$once('leave-transition-end', () => {
-          this.updateGutters();
-          this.updateGridCSS();
-        });
+        this.updateGutters();
+        this.updateGridCSS();
+        // TODO: implement property to handle 'v-if'-ing component internally and handle transitions when removing a child component.
+        // this.$once('leave-transition-end', () => {
+        // });
       } else {
         this.updateGutters();
         this.updateGridCSS();
