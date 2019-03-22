@@ -1,32 +1,58 @@
+<template>
+  <div
+    v-show="show"
+    class="vsg_gutter"
+    :class="{ 'vsg_gutter-horizontal': gridData.direction === 'horizontal', 'vsg_gutter-vertical': gridData.direction === 'vertical' }"
+    :style="{ cursor: gridData.cursor }"
+  />
+</template>
 <script>
+import UuidMixin from '../mixins/uuid.js';
+
 export default {
   name: 'SplitGridGutter',
+  mixins: [UuidMixin],
   props: {
-    track: {
-      type: Number,
-      required: true
+    show: {
+      type: Boolean,
+      default: true
     },
-    direction: {
-      type: String,
-      required: true,
-      validator: val => ['horizontal', 'vertical'].includes(val)
+    size: {
+      type: Number,
+      default() {
+        return this.gridData.gutterSize;
+      }
     }
+  },
+  inject: ['gridData'],
+  watch: {
+    show(value) {
+      this.$parent.$emit('vsg:child.show', { type: 'gutter', uuid: this.uuid, value });
+    }
+  },
+  mounted() {
+    this.$parent.$emit('vsg:child.add', {
+      type: 'gutter',
+      uuid: this.uuid,
+      size: {
+        value: this.size,
+        unit: 'px'
+      }
+    });
+  },
+  destroyed() {
+    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid });
   }
 };
 </script>
-<template>
-  <div
-    class="vsg_gutter"
-    :class="{ 'gutter-horizontal': direction === 'horizontal', 'gutter-vertical': direction === 'vertical' }" />
-</template>
 <style lang="scss" scoped>
 .vsg_gutter {
   background-color: gray;
 
-  &.gutter-horizontal {
+  &.vsg_gutter-horizontal {
   }
 
-  &.gutter-vertical {
+  &.vsg_gutter-vertical {
   }
 }
 </style>

@@ -1,4 +1,3 @@
-// Import vue component
 import SplitGridComponent from './components/SplitGrid.vue';
 import SplitGridAreaComponent from './components/SplitGridArea.vue';
 import SplitGridGutterComponent from './components/SplitGridGutter.vue';
