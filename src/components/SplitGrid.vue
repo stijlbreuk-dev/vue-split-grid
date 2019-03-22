@@ -271,7 +271,7 @@ export default {
       const [currentStringValue, currentUnit] = getStyleValueAndUnit(gridTemplateStyleParts[elementIndex]);
 
       if (currentUnit !== newUnit) {
-        console.warn("[Vue Split Grid]: Can't animate from one unit to a different unit value.");
+        console.warn(`[Vue Split Grid]: Can't animate from ${currentUnit} to ${newUnit}.`);
         return;
       }
 
@@ -485,7 +485,7 @@ export default {
     /**
      * Child events
      */
-    onChildAdded({ type, uuid, size }) {
+    onChildAdded({ uuid, size }) {
       this.validateChildComponents();
 
       this.previousChildComponentSizes = {
