@@ -31,9 +31,8 @@
       @drag-end="log('drag-end', $event)"
     >
       <SplitGrid
-        :show="showRow1"
+        v-if="showRow1"
         v-bind="splitGridOptions"
-        
         class="sb_sub-grid"
         @drag="log('drag', $event)"
         @drag-start="log('drag-start', $event)"
@@ -47,15 +46,15 @@
           column 2
         </SplitGridArea>
         <SplitGridGutter 
-          :show="showColumn2"
+          v-if="showColumn2"
           :transition="transition" />
         <SplitGridArea
-          :show="showColumn2"
+          v-if="showColumn2"
           :transition="transition">
           column 3
         </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter :show="showRow1" />
+      <SplitGridGutter v-if="showRow1" />
       <SplitGridArea :size="size">
         row 2
       </SplitGridArea>

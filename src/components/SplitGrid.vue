@@ -266,7 +266,7 @@ export default {
     this.splitGrid.destroy(true);
 
     if (this.isSubGrid) {
-      this.$parent.$emit('vsg:child.remove', { type: 'grid', uuid: this.uuid });
+      this.$parent.$emit('vsg:child.remove', { type: 'grid', uuid: this.uuid, waitForTransition: this.transition != null });
     }
   },
   methods: {
@@ -515,13 +515,20 @@ export default {
       this.updateGutters();
       this.updateGridCSS();
     },
-    onChildRemoved({ uuid }) {
+    onChildRemoved({ uuid, waitForTransition }) {
       const newChildComponentSizes = { ...this.previousChildComponentSizes };
       delete newChildComponentSizes[uuid];
       this.previousChildComponentSizes = newChildComponentSizes;
 
-      this.updateGutters();
-      this.updateGridCSS();
+      if (waitForTransition) {
+        this.$once('leave-transition-end', () => {
+          this.updateGutters();
+          this.updateGridCSS();
+        });
+      } else {
+        this.updateGutters();
+        this.updateGridCSS();
+      }
     },
     onChildResize({ size: { value, unit }, uuid }) {
       const elementIndex = this.getVisibleChildComponents().findIndex(

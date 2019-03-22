@@ -58,7 +58,7 @@ export default {
     });
   },
   destroyed() {
-    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid });
+    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid, waitForTransition: this.transition != null });
   }
 };
 </script>
