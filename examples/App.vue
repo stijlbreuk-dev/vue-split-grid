@@ -13,7 +13,7 @@
       type="checkbox"
       name="showColumn2"
     >
-    <label for="showColumn2">Show column 2</label>
+    <label for="showColumn2">Show column 3</label>
     <input
       id=""
       v-model="toggleSize"
@@ -31,26 +31,33 @@
       @drag-end="log('drag-end', $event)"
     >
       <SplitGrid
-        v-if="showRow1"
+        :show="showRow1"
         v-bind="splitGridOptions"
+        
         class="sb_sub-grid"
         @drag="log('drag', $event)"
         @drag-start="log('drag-start', $event)"
         @drag-end="log('drag-end', $event)"
       >
-        <SplitGridArea>column 1</SplitGridArea>
-        <SplitGridGutter v-if="showColumn2" />
-        <SplitGridArea v-if="showColumn2">
-          column 2
+        <SplitGridArea :size="{ value: 250, unit: 'px' }">
+          column 1
         </SplitGridArea>
         <SplitGridGutter />
         <SplitGridArea>
+          column 2
+        </SplitGridArea>
+        <SplitGridGutter 
+          :show="showColumn2"
+          :transition="transition" />
+        <SplitGridArea
+          :show="showColumn2"
+          :transition="transition">
           column 3
         </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter v-if="showRow1" />
+      <SplitGridGutter :show="showRow1" />
       <SplitGridArea :size="size">
-        row 3
+        row 2
       </SplitGridArea>
     </SplitGrid>
   </div>
@@ -68,7 +75,7 @@ export default {
         minSize: 100,
         columnMinSize: 35,
         rowMinSize: 25,
-        columnMinSizes: null,
+        columnMinSizes: { 0: 250 },
         rowMinSizes: null,
         snapOffset: 0,
         columnSnapOffset: 0,
@@ -83,12 +90,15 @@ export default {
       },
       showRow1: true,
       showColumn2: false,
-      toggleSize: false
+      toggleSize: false,
+      transition: {
+        name: 'slide-to-left'
+      }
     };
   },
   computed: {
     size() {
-      return this.toggleSize ? { value: 500, unit: 'px'} : { value: 50, unit: 'px'};
+      return this.toggleSize ? { value: 500, unit: 'px' } : { value: 50, unit: 'px' };
     }
   },
   methods: {
@@ -113,6 +123,11 @@ body {
   text-align: center;
   color: #2c3e50;
   height: 100vh;
+  overflow: hidden;
+
+  label {
+    margin-right: 1rem;
+  }
 }
 
 .sb_split-grid {
@@ -120,5 +135,32 @@ body {
 }
 
 .sb_sub-grid {
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.8s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+.slide-to-right-enter-active,
+.slide-to-right-leave-active {
+  transition: opacity 0.2s, transform 0.2s ease;
+}
+.slide-to-right-enter,
+.slide-to-right-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.slide-to-left-enter-active,
+.slide-to-left-leave-active {
+  transition: opacity 0.2s, transform 0.2s ease;
+}
+.slide-to-left-enter,
+.slide-to-left-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 </style>

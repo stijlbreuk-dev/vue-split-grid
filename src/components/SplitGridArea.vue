@@ -1,5 +1,18 @@
 <template>
+  <transition
+    v-if="transition != null"
+    v-bind="transition"
+    @after-leave="$parent.$emit('leave-transition-end')"
+  >
+    <div
+      v-show="show"
+      class="vsg_area"
+    >
+      <slot />
+    </div>
+  </transition>
   <div
+    v-else
     v-show="show"
     class="vsg_area"
   >
@@ -43,11 +56,16 @@ export default {
         }
         return true;
       }
+    },
+    transition: {
+      type: Object,
+      default: null,
+      validator: (val) => Object.keys(val).indexOf('name') > -1
     }
   },
   watch: {
     show(value) {
-      this.$parent.$emit('vsg:child.show', { type: 'grid-area', uuid: this.uuid, value });
+      this.$parent.$emit('vsg:child.show', { type: 'grid-area', uuid: this.uuid, value, waitForTransition: this.transition != null });
     },
     size(size) {
       this.$parent.$emit('vsg:child.resize', { size, type: 'grid-area', uuid: this.uuid });

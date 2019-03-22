@@ -1,5 +1,17 @@
 <template>
+  <transition
+    v-if="transition != null"
+    v-bind="transition"
+    @after-leave="$parent.$emit('leave-transition-end', 'leave-end')">
+    <div
+      v-show="show"
+      class="vsg_gutter"
+      :class="{ 'vsg_gutter-horizontal': gridData.direction === 'horizontal', 'vsg_gutter-vertical': gridData.direction === 'vertical' }"
+      :style="{ cursor: gridData.cursor }"
+    />
+  </transition>
   <div
+    v-else
     v-show="show"
     class="vsg_gutter"
     :class="{ 'vsg_gutter-horizontal': gridData.direction === 'horizontal', 'vsg_gutter-vertical': gridData.direction === 'vertical' }"
@@ -22,12 +34,17 @@ export default {
       default() {
         return this.gridData.gutterSize;
       }
+    },
+    transition: {
+      type: Object,
+      default: null,
+      validator: (val) => Object.keys(val).indexOf('name') > -1
     }
   },
   inject: ['gridData'],
   watch: {
     show(value) {
-      this.$parent.$emit('vsg:child.show', { type: 'gutter', uuid: this.uuid, value });
+      this.$parent.$emit('vsg:child.show', { type: 'gutter', uuid: this.uuid, value, waitForTransition: this.transition != null });
     }
   },
   mounted() {

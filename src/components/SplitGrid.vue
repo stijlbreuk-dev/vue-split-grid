@@ -1,5 +1,18 @@
 <template>
+  <transition
+    v-if="transition != null"
+    v-bind="transition"
+    @after-leave="$parent.$emit('leave-transition-end')"
+  >
+    <div
+      v-show="show"
+      class="vsg_split-grid"
+    >
+      <slot />
+    </div>
+  </transition>
   <div
+    v-else
     v-show="show"
     class="vsg_split-grid"
   >
@@ -95,6 +108,11 @@ export default {
         }
         return true;
       }
+    },
+    transition: {
+      type: Object,
+      default: null,
+      validator: (val) => Object.keys(val).indexOf('name') > -1
     },
     /**
      * Split Grid properties
@@ -197,7 +215,8 @@ export default {
         this.$parent.$emit('vsg:child.show', {
           type: 'grid',
           value,
-          uuid: this.uuid
+          uuid: this.uuid,
+          waitForTransition: this.transition != null
         });
       }
     },
@@ -510,6 +529,10 @@ export default {
           componentUuid === uuid
       );
 
+      if (elementIndex === -1) {
+        return;
+      }
+
       const gridTemplateStyle = this.$el.style[this.gridTemplateProp];
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
 
@@ -537,9 +560,16 @@ export default {
         newSize: { value, unit }
       });
     },
-    onChildShow() {
-      this.updateGutters();
-      this.updateGridCSS();
+    onChildShow({ type, value, waitForTransition }) {
+      if (waitForTransition && !value) {
+        this.$once('leave-transition-end', () => {
+          this.updateGutters();
+          this.updateGridCSS();
+        });
+      } else {
+        this.updateGutters();
+        this.updateGridCSS();
+      }
     }
   }
 };
