@@ -14,7 +14,7 @@
     "serve": "vue serve --open examples/main.js",
     "lint": "vue-cli-service lint",
     "prepublishOnly": "npm run build",
-    "build": "vue-cli-service build --target lib --name vue-split-grid ./src/wrapper.js"
+    "build": "vue-cli-service build --target lib --name VueSplitGrid ./src/wrapper.js"
   },
   "dependencies": {
     "split-grid": "^1.0.9"
