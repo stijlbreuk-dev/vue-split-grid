@@ -4,16 +4,35 @@
     v-bind="transition"
     @after-leave="$parent.$emit('leave-transition-end')"
   >
+    <template v-if="render != null">
+      <div
+        v-if="render"
+        :key="`vsg_area_v-if_${uuid}`"
+        class="vsg_area"
+      >
+        <slot />
+      </div>
+    </template>
     <div
+      v-else
       v-show="show"
+      :key="`vsg_area_v-show_${uuid}`"
       class="vsg_area"
     >
       <slot />
     </div>
   </transition>
   <div
-    v-else
+    v-else-if="render != null && render"
+    :key="`vsg_area_v-if_${uuid}`"
+    class="vsg_area"
+  >
+    <slot />
+  </div>
+  <div
+    v-else-if="render == null"
     v-show="show"
+    :key="`vsg_area_v-show_${uuid}`"
     class="vsg_area"
   >
     <slot />
@@ -26,36 +45,21 @@ export default {
   name: 'SplitGridArea',
   mixins: [UuidMixin],
   props: {
+    render: {
+      type: Boolean,
+      default: null
+    },
     show: {
       type: Boolean,
       default: true
     },
-    size: {
-      type: Object,
-      default: () => ({ unit: 'fr', value: 1 }),
-      validator(size) {
-        const { unit, value, ...rest } = size;
-        const ALLOWED_KEYS = ['duration', 'easing'];
-
-        if (typeof value !== 'number') {
-          console.warn("[Vue Split Grid]: Property 'value' should be of type Number");
-          return false;
-        }
-        if (typeof unit !== 'string') {
-          console.warn("[Vue Split Grid]: Property 'unit' should be of type String");
-          return false;
-        }
-
-        if (Object.keys(rest).length > 0) {
-          console.warn(
-            `[Vue Split Grid]: Invalid size properties: '${Object.keys(rest).join(
-              "', '"
-            )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
-          );
-          return false;
-        }
-        return true;
-      }
+    sizeUnit: {
+      type: String,
+      default: 'fr'
+    },
+    sizeValue: {
+      type: Number,
+      default: 1
     },
     transition: {
       type: Object,
@@ -64,22 +68,39 @@ export default {
     }
   },
   watch: {
+    render(value) {
+      if (value) {
+        this.$parent.$emit('vsg:child.add', {
+          type: 'grid-area',
+          uuid: this.uuid,
+          size: {
+            unit: this.sizeUnit,
+            value: this.sizeValue
+          }
+        });
+      } else {
+        this.$parent.$emit('vsg:child.remove', { type: 'grid-area', uuid: this.uuid, waitForTransition: this.transition != null });
+      }
+    },
     show(value) {
       this.$parent.$emit('vsg:child.show', { type: 'grid-area', uuid: this.uuid, value, waitForTransition: this.transition != null });
     },
-    size(size) {
-      this.$parent.$emit('vsg:child.resize', { size, type: 'grid-area', uuid: this.uuid });
+    sizeUnit(unit) {
+      this.$parent.$emit('vsg:child.resize', { size: { unit, value: this.sizeValue }, type: 'grid-area', uuid: this.uuid });
+    },
+    sizeValue(value) {
+      this.$parent.$emit('vsg:child.resize', { size: { unit: this.sizeUnit, value }, type: 'grid-area', uuid: this.uuid });
     }
   },
   mounted() {
     this.$parent.$emit('vsg:child.add', {
       type: 'grid-area',
       uuid: this.uuid,
-      size: this.size
+      size: {
+        unit: this.sizeUnit,
+        value: this.sizeValue
+      }
     });
-  },
-  destroyed() {
-    this.$parent.$emit('vsg:child.remove', { type: 'gutter', uuid: this.uuid, waitForTransition: this.transition != null });
   }
 };
 </script>

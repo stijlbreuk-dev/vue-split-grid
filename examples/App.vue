@@ -9,11 +9,11 @@
     <label for="showRow1">Show row 1</label>
     <input
       id=""
-      v-model="showColumn2"
+      v-model="showColumn3"
       type="checkbox"
-      name="showColumn2"
+      name="showColumn3"
     >
-    <label for="showColumn2">Show column 3</label>
+    <label for="showColumn3">Show column 3</label>
     <input
       id=""
       v-model="toggleSize"
@@ -31,31 +31,40 @@
       @drag-end="log('drag-end', $event)"
     >
       <SplitGrid
-        v-if="showRow1"
+        :render="showRow1"
         v-bind="splitGridOptions"
         class="sb_sub-grid"
         @drag="log('drag', $event)"
         @drag-start="log('drag-start', $event)"
         @drag-end="log('drag-end', $event)"
       >
-        <SplitGridArea :size="{ value: 250, unit: 'px' }">
+        <SplitGridArea
+          size-unit="px"
+          :size-value="250"
+        >
           column 1
         </SplitGridArea>
         <SplitGridGutter />
         <SplitGridArea>
           column 2
         </SplitGridArea>
-        <SplitGridGutter 
-          v-if="showColumn2"
-          :transition="transition" />
+        <SplitGridGutter
+          :show="showColumn3"
+          :transition="transition"
+        />
         <SplitGridArea
-          v-if="showColumn2"
-          :transition="transition">
+          size-unit="px"
+          :size-value="250"
+          :show="showColumn3"
+          :transition="transition"
+        >
           column 3
         </SplitGridArea>
       </SplitGrid>
-      <SplitGridGutter v-if="showRow1" />
-      <SplitGridArea :size="size">
+      <SplitGridGutter :render="showRow1" />
+      <SplitGridArea
+        :size-unit="size.unit"
+        :size-value="size.value">
         row 2
       </SplitGridArea>
     </SplitGrid>
@@ -88,7 +97,7 @@ export default {
         writeStyle: this.writeStyle
       },
       showRow1: true,
-      showColumn2: false,
+      showColumn3: false,
       toggleSize: false,
       transition: {
         name: 'slide-to-left'

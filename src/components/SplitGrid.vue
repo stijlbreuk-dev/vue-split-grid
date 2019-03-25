@@ -4,16 +4,35 @@
     v-bind="transition"
     @after-leave="$parent.$emit('leave-transition-end')"
   >
+    <template v-if="render != null">
+      <div
+        v-if="render"
+        :key="`vsg_grid_v-if_${uuid}`"
+        class="vsg_split-grid"
+      >
+        <slot />
+      </div>
+    </template>
     <div
+      v-else
       v-show="show"
+      :key="`vsg_grid_v-show_${uuid}`"
       class="vsg_split-grid"
     >
       <slot />
     </div>
   </transition>
   <div
-    v-else
+    v-else-if="render != null && render"
+    :key="`vsg_grid_v-if_${uuid}`"
+    class="vsg_split-grid"
+  >
+    <slot />
+  </div>
+  <div
+    v-else-if="render == null"
     v-show="show"
+    :key="`vsg_grid_v-show_${uuid}`"
     class="vsg_split-grid"
   >
     <slot />
@@ -78,36 +97,21 @@ export default {
       type: Number,
       default: 5
     },
+    render: {
+      type: Boolean,
+      default: null
+    },
     show: {
       type: Boolean,
       default: true
     },
-    size: {
-      type: Object,
-      default: () => ({ unit: 'fr', value: 1 }),
-      validator(size) {
-        const { unit, value, ...rest } = size;
-        const ALLOWED_KEYS = ['duration', 'easing'];
-
-        if (typeof value !== 'number') {
-          console.warn("[Vue Split Grid]: Property 'value' should be of type Number");
-          return false;
-        }
-        if (typeof unit !== 'string') {
-          console.warn("[Vue Split Grid]: Property 'unit' should be of type String");
-          return false;
-        }
-
-        if (Object.keys(rest).length > 0) {
-          console.warn(
-            `[Vue Split Grid]: Invalid size properties: '${Object.keys(rest).join(
-              "', '"
-            )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
-          );
-          return false;
-        }
-        return true;
-      }
+    sizeUnit: {
+      type: String,
+      default: 'fr'
+    },
+    sizeValue: {
+      type: Number,
+      default: 1
     },
     transition: {
       type: Object,
@@ -210,6 +214,22 @@ export default {
     };
   },
   watch: {
+    render(value) {
+      if (this.isSubGrid) {
+        if (value) {
+          this.$parent.$emit('vsg:child.add', {
+            type: 'grid-area',
+            uuid: this.uuid,
+            size: {
+              unit: this.sizeUnit,
+              value: this.sizeValue
+            }
+          });
+        } else {
+          this.$parent.$emit('vsg:child.remove', { type: 'grid-area', uuid: this.uuid, waitForTransition: this.transition != null });
+        }
+      }
+    },
     show(value) {
       if (this.isSubGrid) {
         this.$parent.$emit('vsg:child.show', {
@@ -220,13 +240,14 @@ export default {
         });
       }
     },
-    size(size) {
+    sizeUnit(unit) {
       if (this.isSubGrid) {
-        this.$parent.$emit('vsg:child.resize', {
-          size,
-          type: 'grid',
-          uuid: this.uuid
-        });
+        this.$parent.$emit('vsg:child.resize', { size: { unit, value: this.sizeValue }, type: 'grid-area', uuid: this.uuid });
+      }
+    },
+    sizeValue(value) {
+      if (this.isSubGrid) {
+        this.$parent.$emit('vsg:child.resize', { size: { unit: this.sizeUnit, value }, type: 'grid-area', uuid: this.uuid });
       }
     }
   },
@@ -258,7 +279,10 @@ export default {
       this.$parent.$emit('vsg:child.add', {
         type: 'grid',
         uuid: this.uuid,
-        size: this.size
+        size: {
+          unit: this.sizeUnit,
+          value: this.sizeValue
+        }
       });
     }
   },
@@ -338,13 +362,15 @@ export default {
       const { default: childComponents } = this.$slots;
       return (
         childComponents
-          // Filter components that have been hidden by using v-if
+          // Filter components that have been hidden by using v-if in the parent component
           .filter(childVNode => {
             return childVNode && childVNode.tag;
           })
-          // Filter components that have been hidden by using :show
+          // Filter components that have been hidden by using :show or :render
           .filter(childVNode => {
-            return childVNode.componentInstance.show;
+            return childVNode.componentInstance.render == null ?
+              childVNode.componentInstance.show :
+              childVNode.componentInstance.render ;
           })
       );
     },
@@ -376,7 +402,7 @@ export default {
       this.$slots.default.forEach(vNode => {
         if (vNode.componentInstance) {
           const {
-            componentInstance: { size, uuid }
+            componentInstance: { size, sizeUnit, sizeValue, uuid }
           } = vNode;
           if (vNode.tag.endsWith('SplitGridGutter')) {
             this.previousChildComponentSizes = {
@@ -389,7 +415,10 @@ export default {
           } else {
             this.previousChildComponentSizes = {
               ...this.previousChildComponentSizes,
-              [uuid]: size
+              [uuid]: {
+                unit: sizeUnit,
+                value: sizeValue
+              }
             };
           }
         }
@@ -399,7 +428,7 @@ export default {
       const styleString = visibleChildComponentStyles.join(' ');
 
       // eslint-disable-next-line
-      const { animation, direction, gutterSize, show, size, transition, ...splitGridProperties } = this.$props;
+      const { animation, direction, gutterSize, render, show, sizeUnit, sizeValue, transition, ...splitGridProperties } = this.$props;
 
       this.splitGrid = SplitGrid({
         ...splitGridProperties,
@@ -415,38 +444,34 @@ export default {
       this.$el.style[this.gridTemplateProp] = styleString;
     },
     updateGridCSS() {
-      this.$nextTick(() => {
-        const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
-        const styleString = visibleChildComponentStyles.join(' ');
-        this.$el.style[this.gridTemplateProp] = styleString;
-      });
+      const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
+      const styleString = visibleChildComponentStyles.join(' ');
+      this.$el.style[this.gridTemplateProp] = styleString;
     },
     updateGutters() {
-      this.$nextTick(() => {
-        const newGutters = this.getGutters();
+      const newGutters = this.getGutters();
 
-        const existingColumnGutters = Object.values(
-          this.splitGrid.columnGutters
-        );
-        const existingRowGutters = Object.values(this.splitGrid.rowGutters);
+      const existingColumnGutters = Object.values(
+        this.splitGrid.columnGutters
+      );
+      const existingRowGutters = Object.values(this.splitGrid.rowGutters);
 
-        existingColumnGutters.forEach(({ track }) => {
-          this.splitGrid.removeColumnGutter(track, true);
-        });
-        existingRowGutters.forEach(({ track }) => {
-          this.splitGrid.removeRowGutter(track, true);
-        });
-
-        if (this.direction === 'column') {
-          newGutters.forEach(({ element, track }) => {
-            this.splitGrid.addColumnGutter(element, track);
-          });
-        } else {
-          newGutters.forEach(({ element, track }) => {
-            this.splitGrid.addRowGutter(element, track);
-          });
-        }
+      existingColumnGutters.forEach(({ track }) => {
+        this.splitGrid.removeColumnGutter(track, true);
       });
+      existingRowGutters.forEach(({ track }) => {
+        this.splitGrid.removeRowGutter(track, true);
+      });
+
+      if (this.direction === 'column') {
+        newGutters.forEach(({ element, track }) => {
+          this.splitGrid.addColumnGutter(element, track);
+        });
+      } else {
+        newGutters.forEach(({ element, track }) => {
+          this.splitGrid.addRowGutter(element, track);
+        });
+      }
     },
     validateChildComponents() {
       const { default: childComponents } = this.$slots;
@@ -470,6 +495,8 @@ export default {
     onDrag(direction, track, gridTemplateStyle) {
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
       const visibleChildComponents = this.getVisibleChildComponents();
+
+      const newChildComponentSizes = {};
       visibleChildComponents.forEach(
         ({ componentInstance: { uuid } }, index) => {
           const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
@@ -477,12 +504,16 @@ export default {
             .split(splitValueAndUnitRegex)
             // Fix empty matches: https://stackoverflow.com/a/19918223
             .filter(part => part !== '');
-          this.previousChildComponentSizes[uuid] = {
+          newChildComponentSizes[uuid] = {
             value,
             unit
           };
         }
       );
+      this.previousChildComponentSizes = {
+        ...this.previousChildComponentSizes,
+        ...newChildComponentSizes
+      }
       this.$emit('drag', {
         direction,
         gridTemplateStyle,
@@ -512,8 +543,10 @@ export default {
         [uuid]: size
       };
 
-      this.updateGutters();
-      this.updateGridCSS();
+      this.$nextTick(() => {
+        this.updateGutters();
+        this.updateGridCSS();
+      })
     },
     onChildRemoved({ uuid, waitForTransition }) {
       const newChildComponentSizes = { ...this.previousChildComponentSizes };
@@ -521,14 +554,17 @@ export default {
       this.previousChildComponentSizes = newChildComponentSizes;
 
       if (waitForTransition) {
-        this.updateGutters();
-        this.updateGridCSS();
-        // TODO: implement property to handle 'v-if'-ing component internally and handle transitions when removing a child component.
-        // this.$once('leave-transition-end', () => {
-        // });
+        this.$once('leave-transition-end', () => {
+          this.$nextTick(() => {
+            this.updateGutters();
+            this.updateGridCSS();
+          })
+        });
       } else {
-        this.updateGutters();
-        this.updateGridCSS();
+        this.$nextTick(() => {
+          this.updateGutters();
+          this.updateGridCSS();
+        })
       }
     },
     onChildResize({ size: { value, unit }, uuid }) {
