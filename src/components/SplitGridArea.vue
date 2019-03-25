@@ -24,7 +24,6 @@
   </transition>
   <div
     v-else-if="render != null && render"
-    :key="`vsg_area_v-if_${uuid}`"
     class="vsg_area"
   >
     <slot />
@@ -32,7 +31,6 @@
   <div
     v-else-if="render == null"
     v-show="show"
-    :key="`vsg_area_v-show_${uuid}`"
     class="vsg_area"
   >
     <slot />
