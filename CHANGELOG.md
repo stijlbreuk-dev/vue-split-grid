@@ -4,9 +4,16 @@ All notable changes to Vue Split Grid will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] 
+### Added
+- 'render' property to SplitGrid, SplitGridArea and SplitGridGutter which behaves like v-if to support using v-if in the transition elements in the Split* components.
+
+### Changed 
+- 'size' property now exists of a 'sizeValue' and a 'sizeUnit' property.
+
 ## [0.5.0] 
 ### Added
-- 'transition' property to SplitGrid, SplitGridArea and SplitGridGutter to allow transition, under the hood the native Vue `<transition>` element is used.
+- 'transition' property to SplitGrid, SplitGridArea and SplitGridGutter to allow transitions, under the hood the native Vue `<transition>` element is used.
 
 ### Fixed
 - The CSS of a SplitGrid is no longer updated when a hidden element size changes.
