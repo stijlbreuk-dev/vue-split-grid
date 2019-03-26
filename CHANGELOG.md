@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed 
 - 'size' property now exists of a 'sizeValue' and a 'sizeUnit' property.
 
+### Removed
+- 'size' property in favor of a 'sizeValue' and a 'sizeUnit' property
+
 ## [0.5.0] 
 ### Added
 - 'transition' property to SplitGrid, SplitGridArea and SplitGridGutter to allow transitions, under the hood the native Vue `<transition>` element is used.

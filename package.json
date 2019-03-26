@@ -2,9 +2,9 @@
   "name": "vue-split-grid",
   "version": "0.6.0",
   "description": "A Vue component based on Split Grid",
-  "main": "dist/vue-split-grid.umd.js",
-  "module": "dist/vue-split-grid.common.js",
-  "unpkg": "dist/vue-split-grid.umd.min.js",
+  "main": "dist/VueSplitGrid.umd.js",
+  "module": "dist/VueSplitGrid.common.js",
+  "unpkg": "dist/VueSplitGrid.umd.min.js",
   "browser": {
     "./SplitGrid": "src/components/SplitGrid.vue",
     "./SplitGridArea": "src/components/SplitGridArea.vue",
