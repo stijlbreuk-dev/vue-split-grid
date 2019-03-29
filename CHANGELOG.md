@@ -4,6 +4,10 @@ All notable changes to Vue Split Grid will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.7.0]
+### Added
+- 'strictMode' property to SplitGrid which, when set to false, allows the use of custom child components in a SplitGrid. The custom components can only be used as a wrapper for a SplitGrid or SplitGridArea component to improve the readability of a SplitGrid component.
+
 ## [0.6.0] 
 ### Added
 - 'render' property to SplitGrid, SplitGridArea and SplitGridGutter which behaves like v-if to support using v-if in the transition elements in the Split* components.
