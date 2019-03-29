@@ -67,19 +67,25 @@ export default {
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof duration !== 'number') {
-          console.warn("[Vue Split Grid]: Property 'duration' should be of type Number");
+          console.warn(
+            "[Vue Split Grid]: Property 'duration' should be of type Number"
+          );
           return false;
         }
         if (typeof easing !== 'string') {
-          console.warn("[Vue Split Grid]: Property 'easing' should be of type String");
+          console.warn(
+            "[Vue Split Grid]: Property 'easing' should be of type String"
+          );
           return false;
         }
 
         if (Object.keys(rest).length > 0) {
           console.warn(
-            `[Vue Split Grid]: Invalid animation properties: '${Object.keys(rest).join(
+            `[Vue Split Grid]: Invalid animation properties: '${Object.keys(
+              rest
+            ).join("', '")}', allowed properties: '${ALLOWED_KEYS.join(
               "', '"
-            )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
+            )}'.`
           );
           return false;
         }
@@ -111,10 +117,14 @@ export default {
       type: Number,
       default: 1
     },
+    strictMode: {
+      type: Boolean,
+      default: true
+    },
     transition: {
       type: Object,
       default: null,
-      validator: (val) => Object.keys(val).indexOf('name') > -1
+      validator: val => Object.keys(val).indexOf('name') > -1
     },
     /**
      * Split Grid properties
@@ -125,13 +135,13 @@ export default {
     },
     columnMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
     rowMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
@@ -149,13 +159,13 @@ export default {
     },
     columnSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
     rowSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
@@ -165,13 +175,13 @@ export default {
     },
     columnDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
     rowDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
@@ -224,7 +234,11 @@ export default {
             }
           });
         } else {
-          this.$parent.$emit('vsg:child.remove', { type: 'grid-area', uuid: this.uuid, waitForTransition: this.transition != null });
+          this.$parent.$emit('vsg:child.remove', {
+            type: 'grid-area',
+            uuid: this.uuid,
+            waitForTransition: this.transition != null
+          });
         }
       }
     },
@@ -240,16 +254,24 @@ export default {
     },
     sizeUnit(unit) {
       if (this.isSubGrid) {
-        this.$parent.$emit('vsg:child.resize', { size: { unit, value: this.sizeValue }, type: 'grid-area', uuid: this.uuid });
+        this.$parent.$emit('vsg:child.resize', {
+          size: { unit, value: this.sizeValue },
+          type: 'grid-area',
+          uuid: this.uuid
+        });
       }
     },
     sizeValue(value) {
       if (this.isSubGrid) {
-        this.$parent.$emit('vsg:child.resize', { size: { unit: this.sizeUnit, value }, type: 'grid-area', uuid: this.uuid });
+        this.$parent.$emit('vsg:child.resize', {
+          size: { unit: this.sizeUnit, value },
+          type: 'grid-area',
+          uuid: this.uuid
+        });
       }
     }
   },
-  provide: function () {
+  provide: function() {
     const cursor = (() => {
       if (this.direction === 'column') {
         return this.columnCursor || this.cursor;
@@ -288,7 +310,11 @@ export default {
     this.splitGrid.destroy(true);
 
     if (this.isSubGrid) {
-      this.$parent.$emit('vsg:child.remove', { type: 'grid', uuid: this.uuid, waitForTransition: this.transition != null });
+      this.$parent.$emit('vsg:child.remove', {
+        type: 'grid',
+        uuid: this.uuid,
+        waitForTransition: this.transition != null
+      });
     }
   },
   methods: {
@@ -301,31 +327,45 @@ export default {
       const totalTicks = (this.animation.duration / 1000) * FPS;
       const easingFunction = EasingFunctions[this.animation.easing];
 
-      const getStyleValueAndUnit = (styleString) => {
+      const getStyleValueAndUnit = styleString => {
         const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
-        return styleString
-          .split(splitValueAndUnitRegex)
-          // Fix empty matches: https://stackoverflow.com/a/19918223
-          .filter(part => part !== '');
-      }
+        return (
+          styleString
+            .split(splitValueAndUnitRegex)
+            // Fix empty matches: https://stackoverflow.com/a/19918223
+            .filter(part => part !== '')
+        );
+      };
 
-      const [currentStringValue, currentUnit] = getStyleValueAndUnit(gridTemplateStyleParts[elementIndex]);
+      const [currentStringValue, currentUnit] = getStyleValueAndUnit(
+        gridTemplateStyleParts[elementIndex]
+      );
 
       if (currentUnit !== newUnit) {
-        console.warn(`[Vue Split Grid]: Can't animate from ${currentUnit} to ${newUnit}.`);
+        console.warn(
+          `[Vue Split Grid]: Can't animate from ${currentUnit} to ${newUnit}.`
+        );
         return;
       }
 
       const currentValue = (() => {
         if (currentUnit === 'fr') {
-          const camelCasedGridTemplateProp = this.gridTemplateProp.endsWith('columns') ? 'gridTemplateColumns' : 'gridTemplateRows';
-          const computedTemplatePropStyle = getComputedStyle(this.$el)[camelCasedGridTemplateProp];
-          const elementPropStyle = computedTemplatePropStyle.split(' ')[elementIndex];
+          const camelCasedGridTemplateProp = this.gridTemplateProp.endsWith(
+            'columns'
+          )
+            ? 'gridTemplateColumns'
+            : 'gridTemplateRows';
+          const computedTemplatePropStyle = getComputedStyle(this.$el)[
+            camelCasedGridTemplateProp
+          ];
+          const elementPropStyle = computedTemplatePropStyle.split(' ')[
+            elementIndex
+          ];
 
           const [computedStringValue] = getStyleValueAndUnit(elementPropStyle);
           return parseFloat(computedStringValue);
         }
-        return parseFloat(currentStringValue)
+        return parseFloat(currentStringValue);
       })();
 
       const difference = newValue - currentValue;
@@ -366,9 +406,9 @@ export default {
           })
           // Filter components that have been hidden by using :show or :render
           .filter(childVNode => {
-            return childVNode.componentInstance.render == null ?
-              childVNode.componentInstance.show :
-              childVNode.componentInstance.render ;
+            return childVNode.componentInstance.render == null
+              ? childVNode.componentInstance.show
+              : childVNode.componentInstance.render;
           })
       );
     },
@@ -426,7 +466,17 @@ export default {
       const styleString = visibleChildComponentStyles.join(' ');
 
       // eslint-disable-next-line
-      const { animation, direction, gutterSize, render, show, sizeUnit, sizeValue, transition, ...splitGridProperties } = this.$props;
+      const {
+        animation,
+        direction,
+        gutterSize,
+        render,
+        show,
+        sizeUnit,
+        sizeValue,
+        transition,
+        ...splitGridProperties
+      } = this.$props;
 
       this.splitGrid = SplitGrid({
         ...splitGridProperties,
@@ -449,9 +499,7 @@ export default {
     updateGutters() {
       const newGutters = this.getGutters();
 
-      const existingColumnGutters = Object.values(
-        this.splitGrid.columnGutters
-      );
+      const existingColumnGutters = Object.values(this.splitGrid.columnGutters);
       const existingRowGutters = Object.values(this.splitGrid.rowGutters);
 
       existingColumnGutters.forEach(({ track }) => {
@@ -511,7 +559,7 @@ export default {
       this.previousChildComponentSizes = {
         ...this.previousChildComponentSizes,
         ...newChildComponentSizes
-      }
+      };
       this.$emit('drag', {
         direction,
         gridTemplateStyle,
@@ -544,7 +592,7 @@ export default {
       this.$nextTick(() => {
         this.updateGutters();
         this.updateGridCSS();
-      })
+      });
     },
     onChildRemoved({ uuid, waitForTransition }) {
       const newChildComponentSizes = { ...this.previousChildComponentSizes };
@@ -556,13 +604,13 @@ export default {
           this.$nextTick(() => {
             this.updateGutters();
             this.updateGridCSS();
-          })
+          });
         });
       } else {
         this.$nextTick(() => {
           this.updateGutters();
           this.updateGridCSS();
-        })
+        });
       }
     },
     onChildResize({ size: { value, unit }, uuid }) {
