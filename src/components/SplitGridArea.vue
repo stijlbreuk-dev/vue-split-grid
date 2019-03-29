@@ -2,7 +2,7 @@
   <transition
     v-if="transition != null"
     v-bind="transition"
-    @after-leave="$parent.$emit('leave-transition-end')"
+    @after-leave="emitInParentGrid('leave-transition-end')"
   >
     <template v-if="render != null">
       <div
@@ -62,13 +62,13 @@ export default {
     transition: {
       type: Object,
       default: null,
-      validator: (val) => Object.keys(val).indexOf('name') > -1
+      validator: val => Object.keys(val).indexOf('name') > -1
     }
   },
   watch: {
     render(value) {
       if (value) {
-        this.$parent.$emit('vsg:child.add', {
+        this.emitInParentGrid('vsg:child.add', {
           type: 'grid-area',
           uuid: this.uuid,
           size: {
@@ -77,21 +77,38 @@ export default {
           }
         });
       } else {
-        this.$parent.$emit('vsg:child.remove', { type: 'grid-area', uuid: this.uuid, waitForTransition: this.transition != null });
+        this.emitInParentGrid('vsg:child.remove', {
+          type: 'grid-area',
+          uuid: this.uuid,
+          waitForTransition: this.transition != null
+        });
       }
     },
     show(value) {
-      this.$parent.$emit('vsg:child.show', { type: 'grid-area', uuid: this.uuid, value, waitForTransition: this.transition != null });
+      this.emitInParentGrid('vsg:child.show', {
+        type: 'grid-area',
+        uuid: this.uuid,
+        value,
+        waitForTransition: this.transition != null
+      });
     },
     sizeUnit(unit) {
-      this.$parent.$emit('vsg:child.resize', { size: { unit, value: this.sizeValue }, type: 'grid-area', uuid: this.uuid });
+      this.emitInParentGrid('vsg:child.resize', {
+        size: { unit, value: this.sizeValue },
+        type: 'grid-area',
+        uuid: this.uuid
+      });
     },
     sizeValue(value) {
-      this.$parent.$emit('vsg:child.resize', { size: { unit: this.sizeUnit, value }, type: 'grid-area', uuid: this.uuid });
+      this.emitInParentGrid('vsg:child.resize', {
+        size: { unit: this.sizeUnit, value },
+        type: 'grid-area',
+        uuid: this.uuid
+      });
     }
   },
   mounted() {
-    this.$parent.$emit('vsg:child.add', {
+    this.emitInParentGrid('vsg:child.add', {
       type: 'grid-area',
       uuid: this.uuid,
       size: {
@@ -99,6 +116,22 @@ export default {
         value: this.sizeValue
       }
     });
+  },
+  methods: {
+    emitInParentGrid(event, data) {
+      const $parent = (() => {
+        if (this.$parent.$vnode.tag.endsWith('SplitGrid')) {
+          return this.$parent;
+        } else if (this.$parent.$parent.$vnode.tag.endsWith('SplitGrid')) {
+          return this.$parent.$parent;
+        } else {
+          throw new Error(
+            `[Vue Split Grid]: Either the parent or grandparent of a 'SplitGridArea' component should be a 'SplitGridComponent'.`
+          );
+        }
+      })();
+      $parent.$emit(event, data);
+    }
   }
 };
 </script>

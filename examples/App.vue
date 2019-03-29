@@ -33,6 +33,7 @@
       <SplitGrid
         :render="showRow1"
         v-bind="splitGridOptions"
+        :strictMode="false"
         class="sb_sub-grid"
         @drag="log('drag', $event)"
         @drag-start="log('drag-start', $event)"
@@ -52,27 +53,26 @@
           :show="showColumn3"
           :transition="transition"
         />
-        <SplitGridArea
-          size-unit="px"
-          :size-value="250"
-          :show="showColumn3"
-          :transition="transition"
-        >
-          column 3
-        </SplitGridArea>
+        <ReadabilityWrapper :showColumn3="showColumn3"></ReadabilityWrapper>
       </SplitGrid>
       <SplitGridGutter :render="showRow1" />
       <SplitGridArea
         :size-unit="size.unit"
-        :size-value="size.value">
+        :size-value="size.value"
+      >
         row 2
       </SplitGridArea>
     </SplitGrid>
   </div>
 </template>
 <script>
+import ReadabilityWrapper from './components/ReadabilityWrapper';
+
 export default {
   name: 'App',
+  components: {
+    ReadabilityWrapper
+  },
   data() {
     return {
       animation: {
@@ -91,22 +91,22 @@ export default {
         dragInterval: 5,
         columnDragInterval: 5,
         rowDragInterval: 5,
-        // cursor: null,
-        // columnCursor: null,
-        // rowCursor: null,
         writeStyle: this.writeStyle
       },
       showRow1: true,
       showColumn3: false,
       toggleSize: false,
       transition: {
-        name: 'slide-to-left'
+        name: 'slide-to-left',
+        duration: 200
       }
     };
   },
   computed: {
     size() {
-      return this.toggleSize ? { value: 500, unit: 'px' } : { value: 50, unit: 'px' };
+      return this.toggleSize
+        ? { value: 500, unit: 'px' }
+        : { value: 50, unit: 'px' };
     }
   },
   methods: {
@@ -125,7 +125,7 @@ body {
 }
 
 #app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

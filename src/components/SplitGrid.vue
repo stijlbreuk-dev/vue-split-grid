@@ -396,14 +396,42 @@ export default {
       });
       return gutters;
     },
-    getVisibleChildComponents() {
+    getRenderedChildComponents() {
       const { default: childComponents } = this.$slots;
+      const filterRenderedComponents = childVNode =>
+        childVNode && childVNode.tag;
+      if (this.strictMode) {
+        return (
+          childComponents
+            // Filter components that have been hidden by using v-if in the parent component
+            .filter(filterRenderedComponents)
+        );
+      } else {
+        return childComponents
+          .filter(filterRenderedComponents)
+          .map(childVNode => {
+            if (VALID_CHILD_COMPONENTS_REGEX.test(childVNode.tag)) {
+              return childVNode;
+            }
+            const [nonSplitGridRootComponent] =
+              childVNode.children || childVNode.componentInstance.$children;
+            const nonSplitGridRootVNode =
+              nonSplitGridRootComponent.$vnode || nonSplitGridRootComponent;
+            if (!VALID_CHILD_COMPONENTS_REGEX.test(nonSplitGridRootVNode.tag)) {
+              throw new Error(
+                `[Vue Split Grid]: Expected root element of custom SplitGrid child component to be one of: '${VALID_CHILD_COMPONENTS.join(
+                  "', '"
+                )}'`
+              );
+            }
+            return nonSplitGridRootVNode;
+          });
+      }
+    },
+    getVisibleChildComponents() {
+      const renderedChildComponents = this.getRenderedChildComponents();
       return (
-        childComponents
-          // Filter components that have been hidden by using v-if in the parent component
-          .filter(childVNode => {
-            return childVNode && childVNode.tag;
-          })
+        renderedChildComponents
           // Filter components that have been hidden by using :show or :render
           .filter(childVNode => {
             return childVNode.componentInstance.render == null
@@ -413,17 +441,18 @@ export default {
       );
     },
     getVisibleChildComponentStyles() {
-      return this.getVisibleChildComponents().map(
-        ({ componentInstance: { uuid } }) => {
-          const size = this.previousChildComponentSizes[uuid];
-          // When a sub grid has been removed it's size may have been removed already.
-          if (size) {
-            const { unit, value } = size;
-            return `${value}${unit}`;
-          }
-          return;
+      return this.getVisibleChildComponents().map(vNode => {
+        const {
+          componentInstance: { uuid }
+        } = vNode;
+        const size = this.previousChildComponentSizes[uuid];
+        // When a sub grid has been removed it's size may have been removed already.
+        if (size) {
+          const { unit, value } = size;
+          return `${value}${unit}`;
         }
-      );
+        return;
+      });
     },
     initializeSplitGrid() {
       const columnGutters = [];
@@ -437,28 +466,26 @@ export default {
         rowGutters.push(...gutters);
       }
 
-      this.$slots.default.forEach(vNode => {
-        if (vNode.componentInstance) {
-          const {
-            componentInstance: { size, sizeUnit, sizeValue, uuid }
-          } = vNode;
-          if (vNode.tag.endsWith('SplitGridGutter')) {
-            this.previousChildComponentSizes = {
-              ...this.previousChildComponentSizes,
-              [uuid]: {
-                unit: 'px',
-                value: size
-              }
-            };
-          } else {
-            this.previousChildComponentSizes = {
-              ...this.previousChildComponentSizes,
-              [uuid]: {
-                unit: sizeUnit,
-                value: sizeValue
-              }
-            };
-          }
+      this.getRenderedChildComponents().forEach(vNode => {
+        const {
+          componentInstance: { size, sizeUnit, sizeValue, uuid }
+        } = vNode;
+        if (vNode.tag.endsWith('SplitGridGutter')) {
+          this.previousChildComponentSizes = {
+            ...this.previousChildComponentSizes,
+            [uuid]: {
+              unit: 'px',
+              value: size
+            }
+          };
+        } else {
+          this.previousChildComponentSizes = {
+            ...this.previousChildComponentSizes,
+            [uuid]: {
+              unit: sizeUnit,
+              value: sizeValue
+            }
+          };
         }
       });
 
@@ -520,6 +547,9 @@ export default {
       }
     },
     validateChildComponents() {
+      if (!this.strictMode) {
+        return;
+      }
       const { default: childComponents } = this.$slots;
       const hasValidChildComponents = childComponents.every(
         ({ componentInstance, tag }) =>
@@ -546,14 +576,16 @@ export default {
       visibleChildComponents.forEach(
         ({ componentInstance: { uuid } }, index) => {
           const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
-          const [value, unit] = gridTemplateStyleParts[index]
-            .split(splitValueAndUnitRegex)
-            // Fix empty matches: https://stackoverflow.com/a/19918223
-            .filter(part => part !== '');
-          newChildComponentSizes[uuid] = {
-            value,
-            unit
-          };
+          if (gridTemplateStyleParts[index]) {
+            const [value, unit] = gridTemplateStyleParts[index]
+              .split(splitValueAndUnitRegex)
+              // Fix empty matches: https://stackoverflow.com/a/19918223
+              .filter(part => part !== '');
+            newChildComponentSizes[uuid] = {
+              value,
+              unit
+            };
+          }
         }
       );
       this.previousChildComponentSizes = {
