@@ -63,7 +63,7 @@ export default {
       type: Object,
       default: null,
       validator: animation => {
-        const { duration, easing, ...rest } = animation;
+        const { duration, easing } = animation;
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof duration !== 'number') {
@@ -75,17 +75,6 @@ export default {
         if (typeof easing !== 'string') {
           console.warn(
             "[Vue Split Grid]: Property 'easing' should be of type String"
-          );
-          return false;
-        }
-
-        if (Object.keys(rest).length > 0) {
-          console.warn(
-            `[Vue Split Grid]: Invalid animation properties: '${Object.keys(
-              rest
-            ).join("', '")}', allowed properties: '${ALLOWED_KEYS.join(
-              "', '"
-            )}'.`
           );
           return false;
         }
@@ -216,7 +205,9 @@ export default {
        * could be used but then we would need the default inject value functionality which is only
        * supported by >= Vue 2.5
        */
-      isSubGrid: this.$parent.$vnode.tag.endsWith('SplitGrid'),
+      isSubGrid:
+        this.$parent.$vnode.tag.endsWith('SplitGrid') ||
+        this.$parent.$parent.$vnode.tag.endsWith('SplitGrid'),
       previousChildComponentSizes: {},
       splitGrid: null
     };
@@ -332,7 +323,6 @@ export default {
         return (
           styleString
             .split(splitValueAndUnitRegex)
-            // Fix empty matches: https://stackoverflow.com/a/19918223
             .filter(part => part !== '')
         );
       };
@@ -579,7 +569,6 @@ export default {
           if (gridTemplateStyleParts[index]) {
             const [value, unit] = gridTemplateStyleParts[index]
               .split(splitValueAndUnitRegex)
-              // Fix empty matches: https://stackoverflow.com/a/19918223
               .filter(part => part !== '');
             newChildComponentSizes[uuid] = {
               value,

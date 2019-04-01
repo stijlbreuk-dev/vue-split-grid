@@ -1,21 +1,18 @@
 <template>
   <div id="app">
     <input
-      id=""
       v-model="showRow1"
       type="checkbox"
       name="showRow1"
     >
     <label for="showRow1">Show row 1</label>
     <input
-      id=""
       v-model="showColumn3"
       type="checkbox"
       name="showColumn3"
     >
     <label for="showColumn3">Show column 3</label>
     <input
-      id=""
       v-model="toggleSize"
       type="checkbox"
       name="toggle-size"
@@ -75,6 +72,12 @@ export default {
   },
   data() {
     return {
+      showRow1: true,
+      showColumn3: false,
+      toggleSize: false,
+      /**
+       * Vue Split Grid properties
+       */
       animation: {
         duration: 500,
         easing: 'easeInOutQuint'
@@ -90,12 +93,8 @@ export default {
         rowSnapOffset: 0,
         dragInterval: 5,
         columnDragInterval: 5,
-        rowDragInterval: 5,
-        writeStyle: this.writeStyle
+        rowDragInterval: 5
       },
-      showRow1: true,
-      showColumn3: false,
-      toggleSize: false,
       transition: {
         name: 'slide-to-left',
         duration: 200
@@ -112,9 +111,6 @@ export default {
   methods: {
     log() {
       console.log(...arguments);
-    },
-    writeStyle(grid, gridTemplateProp, gridTemplateStyle) {
-      grid.style[gridTemplateProp] = gridTemplateStyle;
     }
   }
 };
