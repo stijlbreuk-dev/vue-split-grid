@@ -5,7 +5,7 @@
     :show="showColumn3"
     :transition="transition"
   >
-    column 3
+    A split grid area with a lot of child components.
   </SplitGridArea>
 </template>
 <script>
