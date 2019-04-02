@@ -12,7 +12,7 @@
   </a>
 </p>
 
-Vue Split Grid is a Vue wrapper for [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid): The spiritual successor of [Split.js](https://github.com/nathancahill/split), built for CSS Grid. _Current Split Grid version: `v1.0.9`._
+Vue Split Grid is a Vue wrapper for [Split Grid](https://github.com/nathancahill/split/tree/master/packages/split-grid): The spiritual successor of [Split.js](https://github.com/nathancahill/split), built for CSS Grid. Current Split Grid version: `v1.0.9`.
 
 Vue Split Grid also supports animations (with numerous easing functions), Vue transitions and doesn't require any CSS to get a Split Grid working!
 
@@ -109,7 +109,7 @@ CommonJS
 const SplitGrid = require('vue-split-grid');
 ```
 
-In a script tag, this loads the component using the global Vue instance.
+UMD build in a script tag, this loads the component using the global Vue instance.
 
 ```HTML
 <script src="https://unpkg.com/vue-split-grid"></script>
@@ -420,7 +420,7 @@ The initial CSS of the Grid, for which the original Split Grid library uses the 
 
 ### split.add\*Gutter() & split.remove\*Gutter()
 
-The `.addColumnGutter`, `.addRowGutter`, `.removeColumnGutter` and `.removeRowGutter` API methods are called automatically when a `<SplitGridGutter>` is removed by setting either the `show` or `render` property to `false`.
+The `.addColumnGutter()`, `.addRowGutter()`, `.removeColumnGutter()` and `.removeRowGutter()` API methods are called automatically when a `<SplitGridGutter>` is removed by setting either the `show` or `render` property to `false`.
 
 ### split.destroy()
 
