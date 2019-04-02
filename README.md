@@ -342,7 +342,7 @@ The `<SplitGridArea>` component should be used inside `<SplitGrid>` components, 
 
 Whether a SplitGridArea component should be rendered, this option has to be used instead of using the standard `v-if` directive if you want to use a transition when toggling a SplitGridArea. This uses `v-if` under the hood and allows the use of Vue transitions.
 
-Using `render` **must not** be used when in combination with `show`.
+`render` **must not** be used when in combination with `show`.
 
 Default: `null`
 
@@ -388,7 +388,7 @@ Default: `null`
 
 Whether a SplitGridGutter component should be rendered, this option has to be used instead of using the standard `v-if` directive if you want to use a transition when toggling a SplitGridGutter. This uses `v-if` under the hood and allows the use of Vue transitions.
 
-Using `render` **must not** be used when in combination with `show`.
+`render` **must not** be used when in combination with `show`.
 
 Default: `null`
 
