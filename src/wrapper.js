@@ -10,7 +10,9 @@ const components = {
 
 // Declare install function executed by Vue.use()
 function install(Vue) {
-  if (install.installed) return;
+  if (install.installed) {
+    return;
+  }
   install.installed = true;
   Object.entries(components).forEach(([key, component]) => {
     Vue.component(key, component);
