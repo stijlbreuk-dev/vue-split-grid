@@ -207,7 +207,8 @@ export default {
        */
       isSubGrid:
         this.$parent.$vnode.tag.endsWith('SplitGrid') ||
-        this.$parent.$parent.$vnode.tag.endsWith('SplitGrid'),
+        (this.$parent.$parent.$vnode &&
+          this.$parent.$parent.$vnode.tag.endsWith('SplitGrid')),
       previousChildComponentSizes: {},
       splitGrid: null
     };
@@ -320,11 +321,9 @@ export default {
 
       const getStyleValueAndUnit = styleString => {
         const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
-        return (
-          styleString
-            .split(splitValueAndUnitRegex)
-            .filter(part => part !== '')
-        );
+        return styleString
+          .split(splitValueAndUnitRegex)
+          .filter(part => part !== '');
       };
 
       const [currentStringValue, currentUnit] = getStyleValueAndUnit(
