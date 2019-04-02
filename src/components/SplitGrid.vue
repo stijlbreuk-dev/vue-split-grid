@@ -1,5 +1,35 @@
 <template>
+  <transition
+    v-if="transition != null"
+    v-bind="transition"
+    @after-leave="$parent.$emit('leave-transition-end')"
+  >
+    <template v-if="render != null">
+      <div
+        v-if="render"
+        :key="`vsg_grid_v-if_${uuid}`"
+        class="vsg_split-grid"
+      >
+        <slot />
+      </div>
+    </template>
+    <div
+      v-else
+      v-show="show"
+      :key="`vsg_grid_v-show_${uuid}`"
+      class="vsg_split-grid"
+    >
+      <slot />
+    </div>
+  </transition>
   <div
+    v-else-if="render != null && render"
+    class="vsg_split-grid"
+  >
+    <slot />
+  </div>
+  <div
+    v-else-if="render == null"
     v-show="show"
     class="vsg_split-grid"
   >
@@ -33,23 +63,18 @@ export default {
       type: Object,
       default: null,
       validator: animation => {
-        const { duration, easing, ...rest } = animation;
+        const { duration, easing } = animation;
         const ALLOWED_KEYS = ['duration', 'easing'];
 
         if (typeof duration !== 'number') {
-          console.warn("[Vue Split Grid]: Property 'duration' should be of type Number");
+          console.warn(
+            "[Vue Split Grid]: Property 'duration' should be of type Number"
+          );
           return false;
         }
         if (typeof easing !== 'string') {
-          console.warn("[Vue Split Grid]: Property 'easing' should be of type String");
-          return false;
-        }
-
-        if (Object.keys(rest).length > 0) {
           console.warn(
-            `[Vue Split Grid]: Invalid animation properties: '${Object.keys(rest).join(
-              "', '"
-            )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
+            "[Vue Split Grid]: Property 'easing' should be of type String"
           );
           return false;
         }
@@ -65,36 +90,30 @@ export default {
       type: Number,
       default: 5
     },
+    render: {
+      type: Boolean,
+      default: null
+    },
     show: {
       type: Boolean,
       default: true
     },
-    size: {
+    sizeUnit: {
+      type: String,
+      default: 'fr'
+    },
+    sizeValue: {
+      type: Number,
+      default: 1
+    },
+    strictMode: {
+      type: Boolean,
+      default: true
+    },
+    transition: {
       type: Object,
-      default: () => ({ unit: 'fr', value: 1 }),
-      validator(size) {
-        const { unit, value, ...rest } = size;
-        const ALLOWED_KEYS = ['duration', 'easing'];
-
-        if (typeof value !== 'number') {
-          console.warn("[Vue Split Grid]: Property 'value' should be of type Number");
-          return false;
-        }
-        if (typeof unit !== 'string') {
-          console.warn("[Vue Split Grid]: Property 'unit' should be of type String");
-          return false;
-        }
-
-        if (Object.keys(rest).length > 0) {
-          console.warn(
-            `[Vue Split Grid]: Invalid size properties: '${Object.keys(rest).join(
-              "', '"
-            )}', allowed properties: '${ALLOWED_KEYS.join("', '")}'.`
-          );
-          return false;
-        }
-        return true;
-      }
+      default: null,
+      validator: val => Object.keys(val).indexOf('name') > -1
     },
     /**
      * Split Grid properties
@@ -105,13 +124,13 @@ export default {
     },
     columnMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
     rowMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
@@ -129,13 +148,13 @@ export default {
     },
     columnSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
     rowSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
@@ -145,13 +164,13 @@ export default {
     },
     columnDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
     rowDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
@@ -186,32 +205,65 @@ export default {
        * could be used but then we would need the default inject value functionality which is only
        * supported by >= Vue 2.5
        */
-      isSubGrid: this.$parent.$vnode.tag.endsWith('SplitGrid'),
+      isSubGrid:
+        this.$parent.$vnode.tag.endsWith('SplitGrid') ||
+        (this.$parent.$parent.$vnode &&
+          this.$parent.$parent.$vnode.tag.endsWith('SplitGrid')),
       previousChildComponentSizes: {},
       splitGrid: null
     };
   },
   watch: {
+    render(value) {
+      if (this.isSubGrid) {
+        if (value) {
+          this.$parent.$emit('vsg:child.add', {
+            type: 'grid-area',
+            uuid: this.uuid,
+            size: {
+              unit: this.sizeUnit,
+              value: this.sizeValue
+            }
+          });
+        } else {
+          this.$parent.$emit('vsg:child.remove', {
+            type: 'grid-area',
+            uuid: this.uuid,
+            waitForTransition: this.transition != null
+          });
+        }
+      }
+    },
     show(value) {
       if (this.isSubGrid) {
         this.$parent.$emit('vsg:child.show', {
           type: 'grid',
           value,
+          uuid: this.uuid,
+          waitForTransition: this.transition != null
+        });
+      }
+    },
+    sizeUnit(unit) {
+      if (this.isSubGrid) {
+        this.$parent.$emit('vsg:child.resize', {
+          size: { unit, value: this.sizeValue },
+          type: 'grid-area',
           uuid: this.uuid
         });
       }
     },
-    size(size) {
+    sizeValue(value) {
       if (this.isSubGrid) {
         this.$parent.$emit('vsg:child.resize', {
-          size,
-          type: 'grid',
+          size: { unit: this.sizeUnit, value },
+          type: 'grid-area',
           uuid: this.uuid
         });
       }
     }
   },
-  provide: function () {
+  provide: function() {
     const cursor = (() => {
       if (this.direction === 'column') {
         return this.columnCursor || this.cursor;
@@ -239,7 +291,10 @@ export default {
       this.$parent.$emit('vsg:child.add', {
         type: 'grid',
         uuid: this.uuid,
-        size: this.size
+        size: {
+          unit: this.sizeUnit,
+          value: this.sizeValue
+        }
       });
     }
   },
@@ -247,7 +302,11 @@ export default {
     this.splitGrid.destroy(true);
 
     if (this.isSubGrid) {
-      this.$parent.$emit('vsg:child.remove', { type: 'grid', uuid: this.uuid });
+      this.$parent.$emit('vsg:child.remove', {
+        type: 'grid',
+        uuid: this.uuid,
+        waitForTransition: this.transition != null
+      });
     }
   },
   methods: {
@@ -260,31 +319,42 @@ export default {
       const totalTicks = (this.animation.duration / 1000) * FPS;
       const easingFunction = EasingFunctions[this.animation.easing];
 
-      const getStyleValueAndUnit = (styleString) => {
+      const getStyleValueAndUnit = styleString => {
         const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
         return styleString
           .split(splitValueAndUnitRegex)
-          // Fix empty matches: https://stackoverflow.com/a/19918223
           .filter(part => part !== '');
-      }
+      };
 
-      const [currentStringValue, currentUnit] = getStyleValueAndUnit(gridTemplateStyleParts[elementIndex]);
+      const [currentStringValue, currentUnit] = getStyleValueAndUnit(
+        gridTemplateStyleParts[elementIndex]
+      );
 
       if (currentUnit !== newUnit) {
-        console.warn(`[Vue Split Grid]: Can't animate from ${currentUnit} to ${newUnit}.`);
+        console.warn(
+          `[Vue Split Grid]: Can't animate from ${currentUnit} to ${newUnit}.`
+        );
         return;
       }
 
       const currentValue = (() => {
         if (currentUnit === 'fr') {
-          const camelCasedGridTemplateProp = this.gridTemplateProp.endsWith('columns') ? 'gridTemplateColumns' : 'gridTemplateRows';
-          const computedTemplatePropStyle = getComputedStyle(this.$el)[camelCasedGridTemplateProp];
-          const elementPropStyle = computedTemplatePropStyle.split(' ')[elementIndex];
+          const camelCasedGridTemplateProp = this.gridTemplateProp.endsWith(
+            'columns'
+          )
+            ? 'gridTemplateColumns'
+            : 'gridTemplateRows';
+          const computedTemplatePropStyle = getComputedStyle(this.$el)[
+            camelCasedGridTemplateProp
+          ];
+          const elementPropStyle = computedTemplatePropStyle.split(' ')[
+            elementIndex
+          ];
 
           const [computedStringValue] = getStyleValueAndUnit(elementPropStyle);
           return parseFloat(computedStringValue);
         }
-        return parseFloat(currentStringValue)
+        return parseFloat(currentStringValue);
       })();
 
       const difference = newValue - currentValue;
@@ -315,32 +385,63 @@ export default {
       });
       return gutters;
     },
-    getVisibleChildComponents() {
+    getRenderedChildComponents() {
       const { default: childComponents } = this.$slots;
+      const filterRenderedComponents = childVNode =>
+        childVNode && childVNode.tag;
+      if (this.strictMode) {
+        return (
+          childComponents
+            // Filter components that have been hidden by using v-if in the parent component
+            .filter(filterRenderedComponents)
+        );
+      } else {
+        return childComponents
+          .filter(filterRenderedComponents)
+          .map(childVNode => {
+            if (VALID_CHILD_COMPONENTS_REGEX.test(childVNode.tag)) {
+              return childVNode;
+            }
+            const [nonSplitGridRootComponent] =
+              childVNode.children || childVNode.componentInstance.$children;
+            const nonSplitGridRootVNode =
+              nonSplitGridRootComponent.$vnode || nonSplitGridRootComponent;
+            if (!VALID_CHILD_COMPONENTS_REGEX.test(nonSplitGridRootVNode.tag)) {
+              throw new Error(
+                `[Vue Split Grid]: Expected root element of custom SplitGrid child component to be one of: '${VALID_CHILD_COMPONENTS.join(
+                  "', '"
+                )}'`
+              );
+            }
+            return nonSplitGridRootVNode;
+          });
+      }
+    },
+    getVisibleChildComponents() {
+      const renderedChildComponents = this.getRenderedChildComponents();
       return (
-        childComponents
-          // Filter components that have been hidden by using v-if
+        renderedChildComponents
+          // Filter components that have been hidden by using :show or :render
           .filter(childVNode => {
-            return childVNode && childVNode.tag;
-          })
-          // Filter components that have been hidden by using :show
-          .filter(childVNode => {
-            return childVNode.componentInstance.show;
+            return childVNode.componentInstance.render == null
+              ? childVNode.componentInstance.show
+              : childVNode.componentInstance.render;
           })
       );
     },
     getVisibleChildComponentStyles() {
-      return this.getVisibleChildComponents().map(
-        ({ componentInstance: { uuid } }) => {
-          const size = this.previousChildComponentSizes[uuid];
-          // When a sub grid has been removed it's size may have been removed already.
-          if (size) {
-            const { unit, value } = size;
-            return `${value}${unit}`;
-          }
-          return;
+      return this.getVisibleChildComponents().map(vNode => {
+        const {
+          componentInstance: { uuid }
+        } = vNode;
+        const size = this.previousChildComponentSizes[uuid];
+        // When a sub grid has been removed it's size may have been removed already.
+        if (size) {
+          const { unit, value } = size;
+          return `${value}${unit}`;
         }
-      );
+        return;
+      });
     },
     initializeSplitGrid() {
       const columnGutters = [];
@@ -354,25 +455,26 @@ export default {
         rowGutters.push(...gutters);
       }
 
-      this.$slots.default.forEach(vNode => {
-        if (vNode.componentInstance) {
-          const {
-            componentInstance: { size, uuid }
-          } = vNode;
-          if (vNode.tag.endsWith('SplitGridGutter')) {
-            this.previousChildComponentSizes = {
-              ...this.previousChildComponentSizes,
-              [uuid]: {
-                unit: 'px',
-                value: size
-              }
-            };
-          } else {
-            this.previousChildComponentSizes = {
-              ...this.previousChildComponentSizes,
-              [uuid]: size
-            };
-          }
+      this.getRenderedChildComponents().forEach(vNode => {
+        const {
+          componentInstance: { size, sizeUnit, sizeValue, uuid }
+        } = vNode;
+        if (vNode.tag.endsWith('SplitGridGutter')) {
+          this.previousChildComponentSizes = {
+            ...this.previousChildComponentSizes,
+            [uuid]: {
+              unit: 'px',
+              value: size
+            }
+          };
+        } else {
+          this.previousChildComponentSizes = {
+            ...this.previousChildComponentSizes,
+            [uuid]: {
+              unit: sizeUnit,
+              value: sizeValue
+            }
+          };
         }
       });
 
@@ -380,7 +482,17 @@ export default {
       const styleString = visibleChildComponentStyles.join(' ');
 
       // eslint-disable-next-line
-      const { animation, direction, gutterSize, show, size, ...splitGridProperties } = this.$props;
+      const {
+        animation,
+        direction,
+        gutterSize,
+        render,
+        show,
+        sizeUnit,
+        sizeValue,
+        transition,
+        ...splitGridProperties
+      } = this.$props;
 
       this.splitGrid = SplitGrid({
         ...splitGridProperties,
@@ -396,40 +508,37 @@ export default {
       this.$el.style[this.gridTemplateProp] = styleString;
     },
     updateGridCSS() {
-      this.$nextTick(() => {
-        const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
-        const styleString = visibleChildComponentStyles.join(' ');
-        this.$el.style[this.gridTemplateProp] = styleString;
-      });
+      const visibleChildComponentStyles = this.getVisibleChildComponentStyles();
+      const styleString = visibleChildComponentStyles.join(' ');
+      this.$el.style[this.gridTemplateProp] = styleString;
     },
     updateGutters() {
-      this.$nextTick(() => {
-        const newGutters = this.getGutters();
+      const newGutters = this.getGutters();
 
-        const existingColumnGutters = Object.values(
-          this.splitGrid.columnGutters
-        );
-        const existingRowGutters = Object.values(this.splitGrid.rowGutters);
+      const existingColumnGutters = Object.values(this.splitGrid.columnGutters);
+      const existingRowGutters = Object.values(this.splitGrid.rowGutters);
 
-        existingColumnGutters.forEach(({ track }) => {
-          this.splitGrid.removeColumnGutter(track, true);
-        });
-        existingRowGutters.forEach(({ track }) => {
-          this.splitGrid.removeRowGutter(track, true);
-        });
-
-        if (this.direction === 'column') {
-          newGutters.forEach(({ element, track }) => {
-            this.splitGrid.addColumnGutter(element, track);
-          });
-        } else {
-          newGutters.forEach(({ element, track }) => {
-            this.splitGrid.addRowGutter(element, track);
-          });
-        }
+      existingColumnGutters.forEach(({ track }) => {
+        this.splitGrid.removeColumnGutter(track, true);
       });
+      existingRowGutters.forEach(({ track }) => {
+        this.splitGrid.removeRowGutter(track, true);
+      });
+
+      if (this.direction === 'column') {
+        newGutters.forEach(({ element, track }) => {
+          this.splitGrid.addColumnGutter(element, track);
+        });
+      } else {
+        newGutters.forEach(({ element, track }) => {
+          this.splitGrid.addRowGutter(element, track);
+        });
+      }
     },
     validateChildComponents() {
+      if (!this.strictMode) {
+        return;
+      }
       const { default: childComponents } = this.$slots;
       const hasValidChildComponents = childComponents.every(
         ({ componentInstance, tag }) =>
@@ -451,19 +560,26 @@ export default {
     onDrag(direction, track, gridTemplateStyle) {
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
       const visibleChildComponents = this.getVisibleChildComponents();
+
+      const newChildComponentSizes = {};
       visibleChildComponents.forEach(
         ({ componentInstance: { uuid } }, index) => {
           const splitValueAndUnitRegex = /(\d+\.\d+|\d+)(\w*)/;
-          const [value, unit] = gridTemplateStyleParts[index]
-            .split(splitValueAndUnitRegex)
-            // Fix empty matches: https://stackoverflow.com/a/19918223
-            .filter(part => part !== '');
-          this.previousChildComponentSizes[uuid] = {
-            value,
-            unit
-          };
+          if (gridTemplateStyleParts[index]) {
+            const [value, unit] = gridTemplateStyleParts[index]
+              .split(splitValueAndUnitRegex)
+              .filter(part => part !== '');
+            newChildComponentSizes[uuid] = {
+              value,
+              unit
+            };
+          }
         }
       );
+      this.previousChildComponentSizes = {
+        ...this.previousChildComponentSizes,
+        ...newChildComponentSizes
+      };
       this.$emit('drag', {
         direction,
         gridTemplateStyle,
@@ -493,22 +609,39 @@ export default {
         [uuid]: size
       };
 
-      this.updateGutters();
-      this.updateGridCSS();
+      this.$nextTick(() => {
+        this.updateGutters();
+        this.updateGridCSS();
+      });
     },
-    onChildRemoved({ uuid }) {
+    onChildRemoved({ uuid, waitForTransition }) {
       const newChildComponentSizes = { ...this.previousChildComponentSizes };
       delete newChildComponentSizes[uuid];
       this.previousChildComponentSizes = newChildComponentSizes;
 
-      this.updateGutters();
-      this.updateGridCSS();
+      if (waitForTransition) {
+        this.$once('leave-transition-end', () => {
+          this.$nextTick(() => {
+            this.updateGutters();
+            this.updateGridCSS();
+          });
+        });
+      } else {
+        this.$nextTick(() => {
+          this.updateGutters();
+          this.updateGridCSS();
+        });
+      }
     },
     onChildResize({ size: { value, unit }, uuid }) {
       const elementIndex = this.getVisibleChildComponents().findIndex(
         ({ componentInstance: { uuid: componentUuid } }) =>
           componentUuid === uuid
       );
+
+      if (elementIndex === -1) {
+        return;
+      }
 
       const gridTemplateStyle = this.$el.style[this.gridTemplateProp];
       const gridTemplateStyleParts = gridTemplateStyle.split(' ');
@@ -537,9 +670,16 @@ export default {
         newSize: { value, unit }
       });
     },
-    onChildShow() {
-      this.updateGutters();
-      this.updateGridCSS();
+    onChildShow({ type, value, waitForTransition }) {
+      if (waitForTransition && !value) {
+        this.$once('leave-transition-end', () => {
+          this.updateGutters();
+          this.updateGridCSS();
+        });
+      } else {
+        this.updateGutters();
+        this.updateGridCSS();
+      }
     }
   }
 };
