@@ -1,6 +1,10 @@
 # Vue Split Grid
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/stijlbreuk/vue-split-grid/v0.x-initial-release/images/vue-split-grid-basic-example.gif" alt="Example .gif"/>
+</p>
+
+<p align="center">
   <a href="https://www.npmjs.com/package/vue-split-grid">
     <img src="https://img.shields.io/npm/v/vue-split-grid.svg" alt="Version"/>
   </a>
