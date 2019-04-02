@@ -123,7 +123,7 @@ UMD build in a script tag, this loads the component using the global Vue instanc
 
 Instead of initializing SplitGrid by calling a JavaScript function Vue Split Grid uses three different components to accomplish the same end result, these components are `<SplitGrid>`, `<SplitGridArea>` and `<SplitGridGutter>`.
 
-The components accept most of the original Split Grid library it's options as properties. Some of the options are determined automatically by the SplitGrid component, see [How do I configure property X / call API method Y?](#how-do-i-configure-property-x-/-call-api-method-y?).
+The components accept most of the original Split Grid library it's options as properties. Some of the options are determined automatically by the SplitGrid component, see [How do I configure property X / call API method Y?](#how-do-i-configure-property-x--call-api-method-y).
 
 ### SplitGrid
 
