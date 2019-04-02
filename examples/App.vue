@@ -111,6 +111,9 @@ export default {
   methods: {
     log() {
       console.log(...arguments);
+    },
+    writeStyle(grid, gridTemplateProp, gridTemplateStyle) {
+      grid.style[gridTemplateProp] = gridTemplateStyle;
     }
   }
 };
