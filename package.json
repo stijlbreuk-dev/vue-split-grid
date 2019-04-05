@@ -1,6 +1,6 @@
 {
   "name": "vue-split-grid",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "A Vue component based on Split Grid",
   "main": "dist/VueSplitGrid.umd.js",
   "module": "dist/VueSplitGrid.common.js",
