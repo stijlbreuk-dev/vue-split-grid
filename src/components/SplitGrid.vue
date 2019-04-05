@@ -81,6 +81,10 @@ export default {
         return true;
       }
     },
+    cancelTransition: {
+      type: Boolean,
+      default: false
+    },
     direction: {
       type: String,
       default: 'column',
@@ -124,13 +128,13 @@ export default {
     },
     columnMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
     rowMinSize: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.minSize;
       }
     },
@@ -148,13 +152,13 @@ export default {
     },
     columnSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
     rowSnapOffset: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.snapOffset;
       }
     },
@@ -164,13 +168,13 @@ export default {
     },
     columnDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
     rowDragInterval: {
       type: Number,
-      default: function () {
+      default: function() {
         return this.dragInterval;
       }
     },
@@ -620,6 +624,19 @@ export default {
       this.previousChildComponentSizes = newChildComponentSizes;
 
       if (waitForTransition) {
+        if (this.cancelTransition) {
+          const childToRemove = this.$slots.default.find(
+            vNode => vNode.componentInstance.uuid === uuid
+          );
+          if (childToRemove) {
+            childToRemove.componentInstance.$el.style.display = 'none';
+            this.$nextTick(() => {
+              this.updateGutters();
+              this.updateGridCSS();
+            });
+          }
+          return;
+        }
         this.$once('leave-transition-end', () => {
           this.$nextTick(() => {
             this.updateGutters();
@@ -670,13 +687,25 @@ export default {
         newSize: { value, unit }
       });
     },
-    onChildShow({ type, value, waitForTransition }) {
+    onChildShow({ type, value, uuid, waitForTransition }) {
+      const childElement = this.$slots.default.find(
+            vNode => vNode.componentInstance.uuid === uuid
+          );
       if (waitForTransition && !value) {
+        if (this.cancelTransition) {
+          if (childElement) {
+            childElement.componentInstance.$el.style.display = 'none';
+            this.updateGutters();
+            this.updateGridCSS();
+          }
+          return;
+        }
         this.$once('leave-transition-end', () => {
           this.updateGutters();
           this.updateGridCSS();
         });
       } else {
+        childElement.componentInstance.$el.style.display = '';
         this.updateGutters();
         this.updateGridCSS();
       }
